@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Ladekönig",
+        "description": "Finds the cheapest ad-hoc charging price within the selected area. Data source: operators' AFIR reports via the German Mobilithek.",
+        "data": {
+          "name": "Name",
+          "location": "Search area",
+          "min_power": "Minimum power",
+          "current_type": "Current type",
+          "connector": "Connector",
+          "operators": "Only these operators"
+        },
+        "data_description": {
+          "location": "Set centre and radius (max. 50 km) on the map.",
+          "operators": "Optional, comma-separated, e.g. \"Tesla\" or \"EnBW, Ionity\". Empty = all."
+        }
+      }
+    },
+    "error": {
+      "radius_too_large": "The radius must not exceed 50 km.",
+      "radius_too_small": "The radius must be at least 500 m."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Adjust Ladekönig",
+        "data": {
+          "location": "Search area",
+          "min_power": "Minimum power",
+          "current_type": "Current type",
+          "connector": "Connector",
+          "operators": "Only these operators",
+          "data_url": "Data source (URL)"
+        },
+        "data_description": {
+          "operators": "Optional, comma-separated. Empty = all.",
+          "data_url": "Only change this if you run your own data source."
+        }
+      }
+    },
+    "error": {
+      "radius_too_large": "The radius must not exceed 50 km.",
+      "radius_too_small": "The radius must be at least 500 m."
+    }
+  },
+  "selector": {
+    "min_power": {
+      "options": {
+        "0": "All",
+        "22": "22 kW and up",
+        "50": "50 kW and up (fast charging)",
+        "150": "150 kW and up (HPC)"
+      }
+    },
+    "current_type": {
+      "options": {
+        "any": "All",
+        "ac": "Alternating current (AC)",
+        "dc": "Direct current (DC)"
+      }
+    },
+    "connector": {
+      "options": {
+        "any": "All",
+        "ccs": "CCS",
+        "type2": "Type 2",
+        "chademo": "CHAdeMO"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cheapest_price": {
+        "name": "Cheapest price"
+      },
+      "station_count": {
+        "name": "Charging stations in area"
+      },
+      "data_updated": {
+        "name": "Data timestamp"
+      }
+    }
+  }
+}

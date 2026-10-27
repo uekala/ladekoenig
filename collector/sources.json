@@ -1,0 +1,32 @@
+{
+  "_hinweis": "Reihenfolge = Vorrang bei Dubletten (eigene Betreiber-Angebote vor Sammelangeboten). Lizenz bitte am Angebot in der Mobilithek prüfen; nur offene Lizenzen werden verarbeitet. Die Abo-IDs stehen NICHT hier, sondern im Secret MOBILITHEK_SUBSCRIPTIONS.",
+  "sources": [
+    {"key": "tesla", "name": "Tesla Supercharger", "attribution": "Tesla Germany GmbH", "license": "CC0-1.0", "offer": "953828817873125376"},
+    {"key": "enbw", "name": "EnBW mobility+", "attribution": "EnBW mobility+ AG & Co. KG", "license": "CC-BY-4.0", "offer": "907574882292453376"},
+    {"key": "vw_group_charging", "name": "Volkswagen Group Charging (Elli)", "attribution": "Volkswagen Group Charging GmbH", "license": "CC0-1.0", "offer": "983008874583728128"},
+    {"key": "ewe", "name": "EWE Go", "attribution": "EWE", "license": "CC0-1.0", "offer": "1024264572575293440"},
+    {"key": "pump", "name": "PUMP", "attribution": "800 Volt Technologies GmbH", "license": "CC0-1.0", "offer": "969322788846231552"},
+    {"key": "lichtblick", "name": "LichtBlick eMobility", "attribution": "LichtBlick eMobility GmbH", "license": "CC0-1.0", "offer": "962721207430316032"},
+    {"key": "gp_joule", "name": "GP JOULE Connect", "attribution": "GP JOULE Connect GmbH", "license": "CC0-1.0", "offer": "997111469996658688"},
+    {"key": "qwello", "name": "Qwello", "attribution": "Qwello Deutschland GmbH", "license": "CC0-1.0", "offer": "972963216296222720"},
+    {"key": "smatrics", "name": "SMATRICS", "attribution": "SMATRICS GmbH & Co KG", "license": "CC0-1.0", "offer": "980809280034390016"},
+    {"key": "wirelane", "name": "Wirelane", "attribution": "Wirelane GmbH", "license": "CC0-1.0", "offer": "869246425829892096"},
+    {"key": "inergia", "name": "INERGIA", "attribution": "INERGIA GmbH", "license": "CC0-1.0", "offer": "1043944773714128896"},
+    {"key": "eround", "name": "eRound (Hamburger Energienetze)", "attribution": "Hamburger Energienetze GmbH", "license": "CC0-1.0", "offer": "961625658278940672"},
+    {"key": "gls_mobility", "name": "GLS Mobility", "attribution": "GLS Mobility GmbH", "license": "CC-BY-4.0", "offer": "980559859451379712"},
+    {"key": "ev_price", "name": "EV Price", "attribution": "EW Pricing GmbH", "license": "CC0-1.0", "offer": "989311807176560640"},
+    {"key": "tc_backend", "name": "TC-Backend", "attribution": "Taubert Consulting GmbH", "license": "CC0-1.0", "offer": "1000749522967314432"},
+    {"key": "vaylens", "name": "vaylens", "attribution": "vaylens GmbH", "license": "CC0-1.0", "offer": "979363267193040896"},
+    {"key": "chargecloud", "name": "chargecloud", "attribution": "chargecloud GmbH", "license": "CC0-1.0", "offer": "978597062404620288"},
+    {"key": "ladenetz", "name": "ladenetz.de", "attribution": "smartlab Innovationsgesellschaft mbH", "license": "CC0-1.0", "offer": "902547569133924352"},
+    {"key": "ladebusiness", "name": "ladebusiness", "attribution": "smartlab Innovationsgesellschaft mbH", "license": "CC0-1.0", "offer": "903241622921695232"},
+    {"key": "e_clearing", "name": "e-clearing.net", "attribution": "smartlab Innovationsgesellschaft mbH", "license": "CC0-1.0", "offer": "996825300704600064"},
+    {"key": "eco_movement", "name": "Eco-Movement", "attribution": "Eco-Movement B.V.", "license": "CC-BY-4.0", "offer": "954064102947180544"},
+    {"key": "audi", "name": "Audi charging hub", "attribution": "Audi AG", "license": "unbekannt", "offer": "998571342932365312", "enabled": false},
+    {"key": "flavia", "name": "Flavia", "attribution": "Flavia IT-Management GmbH", "license": "unbekannt", "offer": "1004450433724211200", "enabled": false},
+    {"key": "grid_co", "name": "Grid & Co.", "attribution": "Grid & Co. GmbH", "license": "unbekannt", "offer": "984104561811357696", "enabled": false},
+    {"key": "m8mit", "name": "m8mit", "attribution": "msu solutions GmbH", "license": "unbekannt", "offer": "970305056590979072", "enabled": false},
+    {"key": "monta", "name": "Monta", "attribution": "Monta ApS", "license": "unbekannt", "offer": "963836072152719360", "enabled": false},
+    {"key": "road", "name": "Road Public Network", "attribution": "Road B.V.", "license": "unbekannt", "offer": "1021366453630017536", "enabled": false}
+  ]
+}

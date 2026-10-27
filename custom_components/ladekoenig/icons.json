@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "sensor": {
+      "cheapest_price": {
+        "default": "mdi:ev-station"
+      },
+      "station_count": {
+        "default": "mdi:map-marker-multiple"
+      },
+      "data_updated": {
+        "default": "mdi:database-clock"
+      }
+    }
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "payload": {
+    "modelBaseVersionG": "3",
+    "profileNameG": "AFIR Energy Infrastructure",
+    "profileVersionG": "01-00-00",
+    "aegiEnergyInfrastructureTablePublication": {
+      "lang": "de",
+      "publicationTime": "2026-10-01T03:00:00+02:00",
+      "publicationCreator": {"country": "DE", "nationalIdentifier": "DE-NAP-Test"},
+      "headerInformation": {"confidentiality": {"value": "noRestriction"}, "informationStatus": {"value": "test"}},
+      "energyInfrastructureTable": [
+        {
+          "idG": "T1",
+          "versionG": "1",
+          "energyInfrastructureSite": [
+            {
+              "idG": "SITE-SC",
+              "versionG": "1",
+              "brand": {"values": [{"lang": "de", "value": "Supercharger"}]},
+              "operator": {"afacAnOrganisation": {"name": {"values": [{"lang": "de", "value": "Tesla"}]}}},
+              "locationReference": {"locPointLocation": {"coordinatesForDisplay": {"latitude": 50.1101, "longitude": 8.6801}}},
+              "energyInfrastructureStation": [
+                {
+                  "idG": "ST-SC-1",
+                  "versionG": "1",
+                  "lastUpdated": "2026-10-01T03:00:00+02:00",
+                  "locationReference": {
+                    "locPointLocation": {
+                      "coordinatesForDisplay": {"latitude": 50.1101, "longitude": 8.6801},
+                      "locLocationExtensionG": {"FacilityLocation": {"address": {
+                        "postcode": "60311",
+                        "city": {"values": [{"lang": "de", "value": "Musterstadt"}]},
+                        "countryCode": "DE",
+                        "addressLine": [
+                          {"order": 0, "type": {"value": "street"}, "text": {"values": [{"lang": "de", "value": "Ladeweg"}]}},
+                          {"order": 1, "type": {"value": "houseNumber"}, "text": {"values": [{"lang": "de", "value": "1"}]}}
+                        ]
+                      }}}
+                    }
+                  },
+                  "electricEnergy": [
+                    {
+                      "energyRate": [
+                        {
+                          "idG": "RATE-SC",
+                          "ratePolicy": {"value": "adHoc"},
+                          "lastUpdated": "2026-10-01T03:00:00+02:00",
+                          "applicableCurrency": ["EUR"],
+                          "energyPrice": [
+                            {"priceType": {"value": "pricePerKWh"}, "value": 0.59, "taxIncluded": true,
+                             "overallPeriod": {"overallStartTime": "2026-01-01T00:00:00+01:00",
+                               "validPeriod": [{"recurringTimePeriodOfDay": [{"startTimeOfPeriod": "07:00:00Z", "endTimeOfPeriod": "23:00:00Z"}]}]}},
+                            {"priceType": {"value": "pricePerKWh"}, "value": 0.39, "taxIncluded": true,
+                             "overallPeriod": {"overallStartTime": "2026-01-01T00:00:00+01:00",
+                               "validPeriod": [{"recurringTimePeriodOfDay": [{"startTimeOfPeriod": "23:00:00Z", "endTimeOfPeriod": "07:00:00Z"}]}]}}
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "refillPoint": [
+                    {"aegiElectricChargingPoint": {"idG": "P-SC-1", "currentType": {"value": "dc"},
+                      "externalIdentifier": [{"identifier": "DE*TES*E0001", "typeOfIdentifier": {"value": "extendedG", "extendedValueG": "evseId"}}],
+                      "connector": [{"connectorType": {"value": "iec62196T2COMBO"}, "maxPowerAtSocket": 250000}]}},
+                    {"aegiElectricChargingPoint": {"idG": "P-SC-2", "currentType": {"value": "dc"},
+                      "externalIdentifier": [{"identifier": "DE*TES*E0002", "typeOfIdentifier": {"value": "extendedG", "extendedValueG": "evseId"}}],
+                      "connector": [{"connectorType": {"value": "iec62196T2COMBO"}, "maxPowerAtSocket": 250000}]}}
+                  ]
+                }
+              ]
+            },
+            {
+              "idG": "SITE-HPC",
+              "versionG": "1",
+              "operator": {"afacAnOrganisation": {"name": {"values": [{"lang": "de", "value": "EnBW mobility+"}]}}},
+              "energyInfrastructureStation": [
+                {
+                  "idG": "ST-HPC-1",
+                  "versionG": "1",
+                  "locationReference": {"locPointLocation": {"coordinatesForDisplay": {"latitude": 50.1301, "longitude": 8.7001}}},
+                  "refillPoint": [
+                    {"aegiElectricChargingPoint": {"idG": "P-HPC-1", "currentType": {"value": "dc"},
+                      "externalIdentifier": [{"identifier": "DE*EBW*E1001", "typeOfIdentifier": {"value": "extendedG", "extendedValueG": "evseId"}}],
+                      "connector": [{"connectorType": {"value": "iec62196T2COMBO"}, "maxPowerAtSocket": 150000}],
+                      "electricEnergy": [
+                        {
+                          "energyRate": [
+                            {
+                              "idG": "RATE-HPC",
+                              "ratePolicy": {"value": "adHoc"},
+                              "lastUpdated": "2026-10-13T03:00:00+02:00",
+                              "applicableCurrency": ["EUR"],
+                              "energyPrice": [
+                                {"priceType": {"value": "pricePerKWh"}, "value": 0.6639, "taxIncluded": false, "taxRate": 19},
+                                {"priceType": {"value": "pricePerMinute"}, "value": 0.2017, "taxIncluded": false, "taxRate": 19,
+                                 "timeBasedApplicability": {"fromMinute": 30}}
+                              ]
+                            },
+                            {
+                              "idG": "RATE-HPC-CONTRACT",
+                              "ratePolicy": {"value": "contract"},
+                              "lastUpdated": "2026-10-13T03:00:00+02:00",
+                              "applicableCurrency": ["EUR"],
+                              "energyPrice": [{"priceType": {"value": "pricePerKWh"}, "value": 0.39}]
+                            }
+                          ]
+                        }
+                      ]}}
+                  ]
+                }
+              ]
+            },
+            {
+              "idG": "SITE-AC",
+              "versionG": "1",
+              "operator": {"afacAnOrganisation": {"name": {"values": [{"lang": "de", "value": "Stadtwerke Musterstadt"}]}}},
+              "energyInfrastructureStation": [
+                {
+                  "idG": "ST-AC-1",
+                  "versionG": "1",
+                  "locationReference": {"locPointLocation": {"coordinatesForDisplay": {"latitude": 50.1151, "longitude": 8.6851}}},
+                  "electricEnergy": [
+                    {"energyRate": [
+                      {"idG": "RATE-AC", "ratePolicy": {"value": "adHoc"}, "lastUpdated": "2026-09-01T00:00:00+02:00",
+                       "applicableCurrency": ["EUR"],
+                       "energyPrice": [{"priceType": {"value": "pricePerKWh"}, "value": 0.49}]}
+                    ]}
+                  ],
+                  "refillPoint": [
+                    {"aegiElectricChargingPoint": {"idG": "P-AC-1", "currentType": {"value": "ac"},
+                      "connector": [{"connectorType": {"value": "iec62196T2"}, "maxPowerAtSocket": 22000}],
+                      "electricEnergy": [{"energyRateByReference": [{"targetClass": "EnergyRate", "idG": "RATE-AC"}]}]}},
+                    {"aegiElectricChargingPoint": {"idG": "P-AC-2", "currentType": {"value": "ac"},
+                      "connector": [{"connectorType": {"value": "iec62196T2"}, "maxPowerAtSocket": 22000}]}}
+                  ]
+                }
+              ]
+            },
+            {
+              "idG": "SITE-NOPRICE",
+              "versionG": "1",
+              "operator": {"afacAnOrganisation": {"name": {"values": [{"lang": "de", "value": "Ohne Preis GmbH"}]}}},
+              "energyInfrastructureStation": [
+                {
+                  "idG": "ST-NP-1",
+                  "versionG": "1",
+                  "locationReference": {"locPointLocation": {"coordinatesForDisplay": {"latitude": 50.1201, "longitude": 8.6901}}},
+                  "refillPoint": [
+                    {"aegiElectricChargingPoint": {"idG": "P-NP-1", "currentType": {"value": "ac"},
+                      "connector": [{"connectorType": {"value": "iec62196T2"}, "maxPowerAtSocket": 11000}]}}
+                  ]
+                }
+              ]
+            },
+            {
+              "idG": "SITE-FAR",
+              "versionG": "1",
+              "operator": {"afacAnOrganisation": {"name": {"values": [{"lang": "de", "value": "Weit Weg AG"}]}}},
+              "energyInfrastructureStation": [
+                {
+                  "idG": "ST-FAR-1",
+                  "versionG": "1",
+                  "locationReference": {"locPointLocation": {"coordinatesForDisplay": {"latitude": 51.0, "longitude": 9.5}}},
+                  "refillPoint": [
+                    {"aegiElectricChargingPoint": {"idG": "P-FAR-1", "currentType": {"value": "dc"},
+                      "connector": [{"connectorType": {"value": "iec62196T2COMBO"}, "maxPowerAtSocket": 300000}],
+                      "electricEnergy": [{"energyRate": [{"idG": "RATE-FAR", "ratePolicy": {"value": "adHoc"},
+                        "lastUpdated": "2026-09-01T00:00:00+02:00", "applicableCurrency": ["EUR"],
+                        "energyPrice": [{"priceType": {"value": "pricePerKWh"}, "value": 0.19}]}]}]}}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

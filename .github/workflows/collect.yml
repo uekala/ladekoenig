@@ -1,0 +1,91 @@
+name: Daten sammeln
+
+on:
+  schedule:
+    - cron: "17 2 * * *" # täglich 02:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Rohdaten-Cache wiederherstellen
+        uses: actions/cache@v4
+        with:
+          path: .cache/mobilithek
+          key: mobilithek-${{ github.run_id }}
+          restore-keys: mobilithek-
+
+      - name: Zertifikat vorbereiten
+        id: cert
+        env:
+          P12_B64: ${{ secrets.MOBILITHEK_CERT_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.MOBILITHEK_CERT_PASSWORD }}
+        run: |
+          if [ -z "$P12_B64" ]; then
+            echo "::notice::Noch kein Mobilithek-Zertifikat hinterlegt – Lauf übersprungen"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          umask 077
+          dir="$RUNNER_TEMP/cert"
+          mkdir -p "$dir"
+          printf '%s' "$P12_B64" | base64 -d > "$dir/client.p12"
+          for legacy in "" "-legacy"; do
+            if openssl pkcs12 $legacy -in "$dir/client.p12" -passin env:P12_PASSWORD \
+                 -clcerts -nokeys -out "$dir/client.crt" 2>/dev/null \
+               && openssl pkcs12 $legacy -in "$dir/client.p12" -passin env:P12_PASSWORD \
+                 -nocerts -nodes -out "$dir/client.key" 2>/dev/null; then
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "::error::Zertifikat konnte nicht gelesen werden (Secret oder Passwort prüfen)"
+          exit 1
+
+      - name: Daten sammeln
+        if: steps.cert.outputs.ready == 'true'
+        working-directory: collector
+        env:
+          MOBILITHEK_SUBSCRIPTIONS: ${{ secrets.MOBILITHEK_SUBSCRIPTIONS }}
+        run: >-
+          python -m ladekoenig_collector
+          --sources sources.json
+          --out ../public
+          --cache ../.cache/mobilithek
+          --cert "$RUNNER_TEMP/cert/client.crt"
+          --key "$RUNNER_TEMP/cert/client.key"
+
+      - name: Zertifikat entfernen
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/cert"
+
+      - uses: actions/configure-pages@v5
+        if: steps.cert.outputs.ready == 'true'
+
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.cert.outputs.ready == 'true'
+        with:
+          path: public
+
+      - id: deploy
+        if: steps.cert.outputs.ready == 'true'
+        uses: actions/deploy-pages@v4

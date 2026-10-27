@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ladekönig einrichten",
+        "description": "Findet den günstigsten Ad-hoc-Ladepreis im gewählten Umkreis. Datenquelle: AFIR-Meldungen der Betreiber über die Mobilithek.",
+        "data": {
+          "name": "Name",
+          "location": "Suchgebiet",
+          "min_power": "Mindestleistung",
+          "current_type": "Stromart",
+          "connector": "Stecker",
+          "operators": "Nur diese Betreiber"
+        },
+        "data_description": {
+          "location": "Mittelpunkt und Radius (max. 50 km) auf der Karte festlegen.",
+          "operators": "Optional, kommagetrennt, z. B. „Tesla“ oder „EnBW, Ionity“. Leer = alle."
+        }
+      }
+    },
+    "error": {
+      "radius_too_large": "Der Radius darf höchstens 50 km betragen.",
+      "radius_too_small": "Der Radius muss mindestens 500 m betragen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ladekönig anpassen",
+        "data": {
+          "location": "Suchgebiet",
+          "min_power": "Mindestleistung",
+          "current_type": "Stromart",
+          "connector": "Stecker",
+          "operators": "Nur diese Betreiber",
+          "data_url": "Datenquelle (URL)"
+        },
+        "data_description": {
+          "operators": "Optional, kommagetrennt. Leer = alle.",
+          "data_url": "Nur ändern, wenn du eine eigene Datenquelle betreibst."
+        }
+      }
+    },
+    "error": {
+      "radius_too_large": "Der Radius darf höchstens 50 km betragen.",
+      "radius_too_small": "Der Radius muss mindestens 500 m betragen."
+    }
+  },
+  "selector": {
+    "min_power": {
+      "options": {
+        "0": "Alle",
+        "22": "ab 22 kW",
+        "50": "ab 50 kW (Schnellladen)",
+        "150": "ab 150 kW (HPC)"
+      }
+    },
+    "current_type": {
+      "options": {
+        "any": "Alle",
+        "ac": "Wechselstrom (AC)",
+        "dc": "Gleichstrom (DC)"
+      }
+    },
+    "connector": {
+      "options": {
+        "any": "Alle",
+        "ccs": "CCS",
+        "type2": "Typ 2",
+        "chademo": "CHAdeMO"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cheapest_price": {
+        "name": "Günstigster Preis"
+      },
+      "station_count": {
+        "name": "Ladestationen im Umkreis"
+      },
+      "data_updated": {
+        "name": "Datenstand"
+      }
+    }
+  }
+}
