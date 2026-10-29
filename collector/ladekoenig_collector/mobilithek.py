@@ -1,7 +1,7 @@
 """Abruf abonnierter Datenangebote aus der Mobilithek (Pull per HTTPS mit Client-Zertifikat).
 
 Schnittstelle laut Technischer Schnittstellenbeschreibung der Mobilithek:
-``GET https://mobilithek.info:8443/mobilithek/api/V1.0/subscription?subscriptionID=<ID>``
+``GET https://mobilithek.info:8443/mobilithek/api/v1.0/subscription?subscriptionID=<ID>``
 mit ``Accept-Encoding: gzip`` (Pflicht) und optional ``If-Modified-Since``.
 Antworten: 200 Daten, 204 Puffer leer, 304 nichts Neueres.
 
@@ -22,7 +22,7 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-BASE_URL = "https://mobilithek.info:8443/mobilithek/api/V1.0/subscription"
+BASE_URL = "https://mobilithek.info:8443/mobilithek/api/v1.0/subscription"
 MAX_ROUNDS = 25
 TIMEOUT = 120
 RETRIES = 3
