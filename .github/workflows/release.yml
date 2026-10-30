@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,20 +14,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Versionsnummer prüfen
+      - name: Version bestimmen
+        id: version
         run: |
-          version="${GITHUB_REF_NAME#v}"
           manifest=$(python3 -c "import json; print(json.load(open('custom_components/ladekoenig/manifest.json'))['version'])")
-          if [ "$version" != "$manifest" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME passt nicht zur manifest.json ($manifest)"
-            exit 1
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            if [ "${GITHUB_REF_NAME#v}" != "$manifest" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME passt nicht zur manifest.json ($manifest)"
+              exit 1
+            fi
           fi
+          echo "version=$manifest" >> "$GITHUB_OUTPUT"
+          echo "tag=v$manifest" >> "$GITHUB_OUTPUT"
       - name: Release-Notizen aus CHANGELOG.md
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v v="## $version" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
-          test -s notes.md || echo "Version $version" > notes.md
+          awk -v v="## ${{ steps.version.outputs.version }}" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
+          test -s notes.md || echo "Version ${{ steps.version.outputs.version }}" > notes.md
       - name: Release erstellen
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --title "Ladekönig ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release $TAG gibt es schon – erst die Version in manifest.json erhöhen"
+            exit 1
+          fi
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "Ladekönig $VERSION" --notes-file notes.md
