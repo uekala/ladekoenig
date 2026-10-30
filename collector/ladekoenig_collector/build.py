@@ -15,6 +15,7 @@ from typing import Any
 
 from .datex import UnsupportedFormatError, diagnose, load_document, parse_document
 from .mobilithek import FetchError, build_ssl_context, fetch_subscription
+from .operators import build_operator_names, resolve_operator_ids
 
 TILE_DEG = 0.25
 FORMAT_VERSION = 1
@@ -65,6 +66,7 @@ def write_output(
     stats: dict[str, dict[str, Any]],
     generated: str,
     diagnostics: dict[str, dict[str, Any]] | None = None,
+    extra_diagnostics: dict[str, Any] | None = None,
 ) -> dict:
     tiles: dict[str, list[dict]] = {}
     for record in stations:
@@ -104,7 +106,11 @@ def write_output(
     )
     diagnostics = diagnostics or {}
     (base / "diag.json").write_text(
-        json.dumps({"generated": generated, "sources": diagnostics}, ensure_ascii=False, indent=1),
+        json.dumps(
+            {"generated": generated, "sources": diagnostics, **(extra_diagnostics or {})},
+            ensure_ascii=False,
+            indent=1,
+        ),
         encoding="utf-8",
     )
     (out_dir / ".nojekyll").write_text("")
@@ -200,9 +206,19 @@ def run(args: argparse.Namespace) -> int:
         _LOGGER.error("Keine Quelle lieferte Daten – Ausgabe wird nicht geschrieben")
         return 1
 
+    all_records = [item for _source, records in parsed for item in records]
+    operator_ids = resolve_operator_ids(all_records, build_operator_names(all_records))
     stations, stats = merge_sources(parsed)
     generated = args.generated or datetime.now(UTC).replace(microsecond=0).isoformat()
-    meta = write_output(Path(args.out), stations, used_sources, stats, generated, diagnostics)
+    meta = write_output(
+        Path(args.out),
+        stations,
+        used_sources,
+        stats,
+        generated,
+        diagnostics,
+        {"operator_ids": operator_ids},
+    )
     _LOGGER.info(
         "Fertig: %d Stationen, %d Ladepunkte, %d Kacheln, %d Quellen mit Fehler",
         meta["stations"],
