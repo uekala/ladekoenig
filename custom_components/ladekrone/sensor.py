@@ -59,6 +59,22 @@ def _cheapest_attrs(data: LadekroneData) -> dict[str, Any]:
     return attrs
 
 
+def _average_value(data: LadekroneData) -> float | None:
+    """Mittlerer aktueller Ad-hoc-Preis aller passenden Stationen mit Preis."""
+    if not data.offers:
+        return None
+    return round(sum(offer.price.kwh for offer in data.offers) / len(data.offers), 4)
+
+
+def _average_attrs(data: LadekroneData) -> dict[str, Any]:
+    prices = [offer.price.kwh for offer in data.offers]
+    return {
+        "stations": len(prices),
+        "min_price": round(min(prices), 4) if prices else None,
+        "max_price": round(max(prices), 4) if prices else None,
+    }
+
+
 def _ahead_value(data: LadekroneData) -> float | None:
     return round(data.outlook.offer.price.kwh, 4) if data.outlook else None
 
@@ -95,6 +111,15 @@ SENSORS: tuple[LadekroneSensorDescription, ...] = (
         suggested_display_precision=2,
         value_fn=_ahead_value,
         attrs_fn=_ahead_attrs,
+    ),
+    LadekroneSensorDescription(
+        key="average_price",
+        translation_key="average_price",
+        native_unit_of_measurement=PRICE_UNIT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+        value_fn=_average_value,
+        attrs_fn=_average_attrs,
     ),
     LadekroneSensorDescription(
         key="station_count",

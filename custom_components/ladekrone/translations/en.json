@@ -83,6 +83,9 @@
       "cheapest_ahead": {
         "name": "Cheapest price within 24 h"
       },
+      "average_price": {
+        "name": "Average price"
+      },
       "station_count": {
         "name": "Charging stations in area"
       },

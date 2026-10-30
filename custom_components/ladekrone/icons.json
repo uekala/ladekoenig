@@ -7,6 +7,9 @@
       "cheapest_ahead": {
         "default": "mdi:calendar-clock"
       },
+      "average_price": {
+        "default": "mdi:approximately-equal"
+      },
       "station_count": {
         "default": "mdi:map-marker-multiple"
       },

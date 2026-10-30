@@ -75,6 +75,7 @@ Alles lässt sich später über **Konfigurieren** ändern.
 |--------|--------|
 | Günstigster Preis | Aktuell günstigster Ad-hoc-Preis in €/kWh. Attribute: `operator`, `address`, `distance_km`, `power_kw`, `current_type`, `connectors`, `minute_fee`, `minute_fee_from`, `session_fee`, `price_updated`, `latitude`, `longitude`, `offers` (Top 5). Bei zeitabhängigen Tarifen zusätzlich `until` (Preis gilt bis) und `next_price` (Preis danach), auch in jedem Eintrag von `offers` |
 | Günstigster Preis in 24 h | Niedrigster Preis, der in den nächsten 24 Stunden im Umkreis erreicht wird. Attribute wie oben plus `from`, `until` und `now` (gilt schon jetzt) |
+| Durchschnittspreis | Mittlerer aktueller Ad-hoc-Preis aller passenden Stationen mit Preis im Umkreis. Attribute: `stations`, `min_price`, `max_price` |
 | Ladestationen im Umkreis | Passende Stationen. Attribute: `with_price` (davon mit Preis), `center_source` (`fixed` oder die Entität, der die Suche folgt), `center_latitude`, `center_longitude` |
 | Datenstand | Zeitpunkt der letzten Datenaufbereitung (Diagnose) |
 

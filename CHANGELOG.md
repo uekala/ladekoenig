@@ -1,5 +1,9 @@
 # Änderungen
 
+## 0.3.1
+
+- **Durchschnittspreis**: neuer Sensor mit dem mittleren aktuellen Ad-hoc-Preis aller passenden Stationen im Umkreis, mit `stations`, `min_price` und `max_price`. Gut als Standardpreis, wenn der echte Preis einer Ladung fehlt.
+
 ## 0.3.0
 
 - **Neuer Name: Ladekrone.** Ladekönig heißt jetzt Ladekrone, die Krone bleibt. Repository, Integration (`ladekrone`) und Datenseite sind umbenannt.

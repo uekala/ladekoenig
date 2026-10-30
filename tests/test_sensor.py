@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
@@ -68,6 +69,13 @@ async def test_sensors_show_cheapest_offer(
     count = hass.states.get("sensor.ladekrone_charging_stations_in_area")
     assert count.state == "4"
     assert count.attributes["with_price"] == 3
+
+    average = hass.states.get("sensor.ladekrone_average_price")
+    prices = [offer["price"] for offer in price.attributes["offers"]]
+    assert float(average.state) == pytest.approx(sum(prices) / len(prices), abs=1e-3)
+    assert average.attributes["stations"] == 3
+    assert average.attributes["min_price"] == min(prices)
+    assert average.attributes["max_price"] == max(prices)
 
     stamp = hass.states.get("sensor.ladekrone_data_timestamp")
     assert stamp.state == "2026-10-27T03:00:00+00:00"
