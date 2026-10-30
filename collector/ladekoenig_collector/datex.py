@@ -17,6 +17,8 @@ import re
 from collections.abc import Iterator
 from typing import Any
 
+from .operators import operator_id
+
 PUBLICATION_KEY = "aegiEnergyInfrastructureTablePublication"
 
 DAYS = {
@@ -161,14 +163,22 @@ def _iter_dicts(obj: Any) -> Iterator[dict]:
 
 
 def _organisation_name(org: Any) -> str | None:
-    """Name aus einer OrganisationG (``afacAnOrganisation`` u. ä.)."""
+    """Name aus einer OrganisationG (``afacAnOrganisation`` u. ä.).
+
+    Manche Betreiber tragen unter ``name`` nur ihre Betreiber-ID ein
+    (``DE*EWE``) und den Klarnamen unter ``legalName``. Dann gewinnt der
+    Klarname.
+    """
     if not isinstance(org, dict):
         return None
     for value in org.values():
         if isinstance(value, dict):
-            name = _text(value.get("name")) or _text(value.get("legalName"))
-            if name:
-                return name
+            name = _text(value.get("name"))
+            legal = _text(value.get("legalName"))
+            if name and legal and operator_id(name):
+                return legal
+            if name or legal:
+                return name or legal
     return _text(org.get("name"))
 
 

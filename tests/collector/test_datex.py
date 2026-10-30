@@ -115,3 +115,17 @@ def test_diagnose_counts_rate_policies() -> None:
     assert result["price_types"]
     assert isinstance(result["rate_sample"], dict)
     assert result["points"] > 0
+
+
+def test_legal_name_wins_over_operator_id() -> None:
+    from ladekoenig_collector.datex import _organisation_name
+
+    org = {
+        "afacAnOrganisation": {
+            "name": {"values": [{"lang": "de", "value": "DE*EWE"}]},
+            "legalName": {"values": [{"lang": "de", "value": "EWE Go GmbH"}]},
+        }
+    }
+    assert _organisation_name(org) == "EWE Go GmbH"
+    org["afacAnOrganisation"]["name"]["values"][0]["value"] = "EWE Go"
+    assert _organisation_name(org) == "EWE Go"
