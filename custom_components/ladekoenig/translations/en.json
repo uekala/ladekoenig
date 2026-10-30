@@ -10,11 +10,13 @@
           "min_power": "Minimum power",
           "current_type": "Current type",
           "connector": "Connector",
-          "operators": "Only these operators"
+          "operators": "Only these operators",
+          "location_entity": "Center follows"
         },
         "data_description": {
           "location": "Set centre and radius (max. 50 km) on the map.",
-          "operators": "Optional, comma-separated, e.g. \"Tesla\" or \"EnBW, Ionity\". Empty = all."
+          "operators": "Optional, comma-separated, e.g. \"Tesla\" or \"EnBW, Ionity\". Empty = all.",
+          "location_entity": "Optional: the search moves with this entity, e.g. your car (device_tracker) or a person. Without a current position the location above is used. The radius always comes from the search area."
         }
       }
     },
@@ -33,11 +35,13 @@
           "current_type": "Current type",
           "connector": "Connector",
           "operators": "Only these operators",
-          "data_url": "Data source (URL)"
+          "data_url": "Data source (URL)",
+          "location_entity": "Center follows"
         },
         "data_description": {
           "operators": "Optional, comma-separated. Empty = all.",
-          "data_url": "Only change this if you run your own data source."
+          "data_url": "Only change this if you run your own data source.",
+          "location_entity": "Optional: the search moves with this entity, e.g. your car (device_tracker) or a person. Without a current position the location above is used. The radius always comes from the search area."
         }
       }
     },

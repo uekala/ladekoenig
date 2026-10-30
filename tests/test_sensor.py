@@ -153,3 +153,46 @@ async def test_unload(
     await hass.async_block_till_done()
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_search_follows_location_entity(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
+    published_data,
+) -> None:
+    freezer.move_to(datetime(2026, 10, 27, 11, 0, tzinfo=UTC))
+    _mock_data(aioclient_mock, published_data)
+    # Fester Ort weit weg (Berlin), das Auto steht aber in Frankfurt bei den Stationen
+    hass.states.async_set(
+        "device_tracker.auto", "not_home", {"latitude": 50.1101, "longitude": 8.6801}
+    )
+    entry = _entry(
+        hass,
+        location={"latitude": 52.52, "longitude": 13.405, "radius": 10000},
+        location_entity="device_tracker.auto",
+    )
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    price = hass.states.get("sensor.ladekonig_cheapest_price")
+    assert float(price.state) == 0.49
+    count = hass.states.get("sensor.ladekonig_charging_stations_in_area")
+    assert count.attributes["center_source"] == "device_tracker.auto"
+
+    # Auto fährt nach Berlin: dort gibt es keine Stationen im Beispiel
+    hass.states.async_set(
+        "device_tracker.auto", "not_home", {"latitude": 52.52, "longitude": 13.405}
+    )
+    freezer.tick(timedelta(seconds=15))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.ladekonig_cheapest_price").state == "unknown"
+
+    # Ohne Position gilt der feste Ort
+    hass.states.async_set("device_tracker.auto", "unavailable", {})
+    freezer.tick(timedelta(seconds=15))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    count = hass.states.get("sensor.ladekonig_charging_stations_in_area")
+    assert count.attributes["center_source"] == "fixed"

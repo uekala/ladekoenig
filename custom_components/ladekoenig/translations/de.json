@@ -10,11 +10,13 @@
           "min_power": "Mindestleistung",
           "current_type": "Stromart",
           "connector": "Stecker",
-          "operators": "Nur diese Betreiber"
+          "operators": "Nur diese Betreiber",
+          "location_entity": "Mittelpunkt folgt"
         },
         "data_description": {
           "location": "Mittelpunkt und Radius (max. 50 km) auf der Karte festlegen.",
-          "operators": "Optional, kommagetrennt, z. B. „Tesla“ oder „EnBW, Ionity“. Leer = alle."
+          "operators": "Optional, kommagetrennt, z. B. „Tesla“ oder „EnBW, Ionity“. Leer = alle.",
+          "location_entity": "Optional: Die Suche wandert mit dieser Entität mit, z. B. mit dem Auto (device_tracker) oder einer Person. Ohne aktuelle Position gilt der Ort oben. Der Radius kommt immer vom Suchgebiet."
         }
       }
     },
@@ -33,11 +35,13 @@
           "current_type": "Stromart",
           "connector": "Stecker",
           "operators": "Nur diese Betreiber",
-          "data_url": "Datenquelle (URL)"
+          "data_url": "Datenquelle (URL)",
+          "location_entity": "Mittelpunkt folgt"
         },
         "data_description": {
           "operators": "Optional, kommagetrennt. Leer = alle.",
-          "data_url": "Nur ändern, wenn du eine eigene Datenquelle betreibst."
+          "data_url": "Nur ändern, wenn du eine eigene Datenquelle betreibst.",
+          "location_entity": "Optional: Die Suche wandert mit dieser Entität mit, z. B. mit dem Auto (device_tracker) oder einer Person. Ohne aktuelle Position gilt der Ort oben. Der Radius kommt immer vom Suchgebiet."
         }
       }
     },

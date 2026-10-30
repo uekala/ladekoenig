@@ -101,7 +101,12 @@ SENSORS: tuple[LadekoenigSensorDescription, ...] = (
         translation_key="station_count",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.station_count,
-        attrs_fn=lambda data: {"with_price": len(data.offers)},
+        attrs_fn=lambda data: {
+            "with_price": len(data.offers),
+            "center_source": data.center_source,
+            "center_latitude": data.center[0] if data.center else None,
+            "center_longitude": data.center[1] if data.center else None,
+        },
     ),
     LadekoenigSensorDescription(
         key="data_updated",

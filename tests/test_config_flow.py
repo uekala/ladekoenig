@@ -97,3 +97,26 @@ async def test_options_flow_updates_filters(hass: HomeAssistant) -> None:
     assert entry.options["min_power"] == "150"
     assert entry.options["location"]["radius"] == 5000
     assert entry.options["data_url"] == "https://example.invalid/v1"
+
+
+async def test_user_flow_with_location_entity(hass: HomeAssistant) -> None:
+    hass.states.async_set("device_tracker.auto", "home", {"latitude": 50.1, "longitude": 8.6})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with patch("custom_components.ladekoenig.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "name": "Unterwegs",
+                "location": LOCATION,
+                "min_power": "0",
+                "current_type": "dc",
+                "connector": "any",
+                "operators": "Tesla",
+                "location_entity": "device_tracker.auto",
+            },
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"]["location_entity"] == "device_tracker.auto"

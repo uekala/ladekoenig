@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Any
 
@@ -20,12 +20,15 @@ from .const import (
     CONF_CURRENT,
     CONF_DATA_URL,
     CONF_LOCATION,
+    CONF_LOCATION_ENTITY,
     CONF_MIN_POWER,
     CONF_OPERATORS,
     DEFAULT_DATA_URL,
     DEFAULT_RADIUS_M,
     DOMAIN,
     FETCH_INTERVAL,
+    MAX_CACHED_TILES,
+    MOVE_THRESHOLD_KM,
     REQUEST_TIMEOUT,
     SUPPORTED_FORMAT,
     TOP_OFFERS,
@@ -38,6 +41,7 @@ from .pricing import (
     annotate_changes,
     cheapest_ahead,
     count_stations,
+    distance_km,
     find_offers,
     future_steps,
     stations_in_radius,
@@ -56,6 +60,7 @@ class SearchSettings:
     radius_km: float
     filters: Filters
     data_url: str
+    location_entity: str | None = None
 
     @classmethod
     def from_entry(cls, entry: ConfigEntry) -> SearchSettings:
@@ -77,6 +82,7 @@ class SearchSettings:
                 operators=operators,
             ),
             data_url=str(config.get(CONF_DATA_URL) or DEFAULT_DATA_URL).rstrip("/"),
+            location_entity=config.get(CONF_LOCATION_ENTITY) or None,
         )
 
 
@@ -90,6 +96,8 @@ class LadekoenigData:
     attribution: str
     sources: list[dict[str, Any]] = field(default_factory=list)
     outlook: Outlook | None = None
+    center: tuple[float, float] | None = None
+    center_source: str | None = None
 
 
 def evaluate(
@@ -133,25 +141,51 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
         self._outlook_key: tuple | None = None
         self._outlook: Outlook | None = None
 
+    def center(self) -> tuple[float, float, str]:
+        """Mittelpunkt der Suche: Standort-Entität, sonst der feste Ort."""
+        settings = self.settings
+        if settings.location_entity and (state := self.hass.states.get(settings.location_entity)):
+            lat = state.attributes.get("latitude")
+            lon = state.attributes.get("longitude")
+            if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
+                return float(lat), float(lon), settings.location_entity
+        return settings.latitude, settings.longitude, "fixed"
+
+    def moved_far(self) -> bool:
+        """True, wenn sich der Mittelpunkt seit der letzten Auswertung merklich bewegt hat."""
+        if self.data is None or self.data.center is None:
+            return True
+        lat, lon, source = self.center()
+        if source != self.data.center_source:
+            return True
+        return distance_km(lat, lon, *self.data.center) >= MOVE_THRESHOLD_KM
+
     async def _async_update_data(self) -> LadekoenigData:
         now = dt_util.utcnow()
+        lat, lon, center_source = self.center()
         if self._last_fetch is None or now - self._last_fetch >= FETCH_INTERVAL:
             try:
-                await self._async_fetch()
+                await self._async_fetch(lat, lon)
             except (aiohttp.ClientError, TimeoutError, ValueError) as err:
                 if self._meta is None:
                     raise UpdateFailed(f"Ladepreise nicht abrufbar: {err}") from err
                 _LOGGER.warning("Abruf fehlgeschlagen, nutze vorhandene Daten: %s", err)
             else:
                 self._last_fetch = now
+        else:
+            try:
+                await self._async_fetch_missing(lat, lon)
+            except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+                _LOGGER.warning("Kacheln für den neuen Standort nicht abrufbar: %s", err)
 
         stations = [station for tile in self._tiles.values() for station in tile]
         # Die 24-Stunden-Vorschau ändert sich nur zur nächsten Viertelstunde oder
         # mit neuen Daten; dazwischen wird sie nicht neu berechnet.
-        outlook_key = (future_steps(now)[0], self._last_fetch, self.settings)
+        settings = replace(self.settings, latitude=lat, longitude=lon)
+        outlook_key = (future_steps(now)[0], self._last_fetch, settings, len(self._tiles))
         fresh = outlook_key != self._outlook_key
         offers, count, outlook = await self.hass.async_add_executor_job(
-            evaluate, stations, self.settings, now, fresh
+            evaluate, stations, settings, now, fresh
         )
         if fresh:
             self._outlook_key, self._outlook = outlook_key, outlook
@@ -164,9 +198,40 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
             attribution=_attribution(meta),
             sources=list(meta.get("sources") or []),
             outlook=outlook,
+            center=(lat, lon),
+            center_source=center_source,
         )
 
-    async def _async_fetch(self) -> None:
+    def _wanted_tiles(self, lat: float, lon: float, meta: dict[str, Any]) -> list[str]:
+        available = set(meta.get("tiles") or [])
+        return [
+            key
+            for key in tiles_for_radius(
+                lat, lon, self.settings.radius_km, float(meta.get("tile_deg", 0.25))
+            )
+            if key in available
+        ]
+
+    async def _async_fetch_missing(self, lat: float, lon: float) -> None:
+        """Lädt nur die Kacheln nach, die für einen neuen Standort fehlen."""
+        if self._meta is None:
+            return
+        missing = [k for k in self._wanted_tiles(lat, lon, self._meta) if k not in self._tiles]
+        if not missing:
+            return
+        url = self.settings.data_url
+        results = await asyncio.gather(
+            *(self._async_get_json(f"{url}/tiles/{key}.json", key) for key in missing)
+        )
+        for key, payload in zip(missing, results, strict=True):
+            self._tiles[key] = list((payload or {}).get("stations") or [])
+        if len(self._tiles) > MAX_CACHED_TILES:
+            keep = set(self._wanted_tiles(lat, lon, self._meta))
+            for key in [k for k in self._tiles if k not in keep]:
+                self._tiles.pop(key, None)
+                self._etags.pop(key, None)
+
+    async def _async_fetch(self, lat: float, lon: float) -> None:
         settings = self.settings
         meta = await self._async_get_json(f"{settings.data_url}/meta.json", "meta")
         if meta is None:
@@ -176,17 +241,7 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
         if int(meta.get("v", 0)) != SUPPORTED_FORMAT:
             raise ValueError(f"Datenformat v{meta.get('v')} wird nicht unterstützt")
 
-        available = set(meta.get("tiles") or [])
-        wanted = [
-            key
-            for key in tiles_for_radius(
-                settings.latitude,
-                settings.longitude,
-                settings.radius_km,
-                float(meta.get("tile_deg", 0.25)),
-            )
-            if key in available
-        ]
+        wanted = self._wanted_tiles(lat, lon, meta)
         results = await asyncio.gather(
             *(self._async_get_json(f"{settings.data_url}/tiles/{key}.json", key) for key in wanted)
         )

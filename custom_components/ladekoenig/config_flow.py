@@ -20,6 +20,7 @@ from .const import (
     CONF_CURRENT,
     CONF_DATA_URL,
     CONF_LOCATION,
+    CONF_LOCATION_ENTITY,
     CONF_MIN_POWER,
     CONF_OPERATORS,
     CONNECTOR_OPTIONS,
@@ -28,6 +29,7 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_RADIUS_M,
     DOMAIN,
+    LOCATION_DOMAINS,
     MAX_RADIUS_M,
     MIN_POWER_OPTIONS,
 )
@@ -61,6 +63,10 @@ def _search_schema(defaults: dict[str, Any]) -> dict:
             CONF_OPERATORS,
             description={"suggested_value": defaults.get(CONF_OPERATORS, "")},
         ): selector.TextSelector(),
+        vol.Optional(
+            CONF_LOCATION_ENTITY,
+            description={"suggested_value": defaults.get(CONF_LOCATION_ENTITY)},
+        ): selector.EntitySelector(selector.EntitySelectorConfig(domain=LOCATION_DOMAINS)),
     }
 
 
@@ -80,6 +86,8 @@ def _clean(user_input: dict[str, Any]) -> dict[str, Any]:
     location.setdefault("radius", DEFAULT_RADIUS_M)
     data[CONF_LOCATION] = location
     data[CONF_OPERATORS] = str(data.get(CONF_OPERATORS) or "").strip()
+    if not data.get(CONF_LOCATION_ENTITY):
+        data.pop(CONF_LOCATION_ENTITY, None)
     return data
 
 
