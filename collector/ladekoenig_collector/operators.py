@@ -11,13 +11,13 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-OPERATOR_ID_RE = re.compile(r"^\s*([A-Z]{2})\s*\*?\s*([A-Z0-9]{3})\s*$")
+OPERATOR_ID_RE = re.compile(r"^\s*([A-Z]{2})\s*\*\s*([A-Z0-9]{3})\s*$")
 MIN_VOTES = 3
 MIN_SHARE = 0.6
 
 
 def operator_id(name: str | None) -> str | None:
-    """'DE*ISE' oder 'DEISE' -> 'DEISE'; sonst None."""
+    """'DE*ISE' -> 'DEISE'; sonst None. Ohne Stern zählt es als Name (z. B. 'BOSCH')."""
     if not name:
         return None
     match = OPERATOR_ID_RE.match(name.upper())

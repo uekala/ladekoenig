@@ -578,6 +578,7 @@ def diagnose(document: Any) -> dict[str, Any]:
     price_types: dict[str, int] = {}
     rate_sample: dict | None = None
     energy_sample: Any = None
+    site_sample: Any = None
     rates = points = 0
     for item in _iter_dicts(document):
         if "ratePolicy" in item or "energyPrice" in item:
@@ -590,6 +591,13 @@ def diagnose(document: Any) -> dict[str, Any]:
                     price_types[kind] = price_types.get(kind, 0) + 1
             if rate_sample is None:
                 rate_sample = item
+        if site_sample is None and "energyInfrastructureStation" in item:
+            site_sample = {k: v for k, v in item.items() if k != "energyInfrastructureStation"}
+            stations = _as_list(item.get("energyInfrastructureStation"))
+            if stations and isinstance(stations[0], dict):
+                site_sample["station"] = {
+                    k: v for k, v in stations[0].items() if k != "refillPoint"
+                }
         if "aegiElectricChargingPoint" in item:
             points += 1
             if energy_sample is None:
@@ -604,4 +612,5 @@ def diagnose(document: Any) -> dict[str, Any]:
         "price_types": price_types,
         "rate_sample": _compact(rate_sample) if rate_sample is not None else None,
         "point_sample": _compact(energy_sample) if energy_sample is not None else None,
+        "site_sample": _compact(site_sample) if site_sample is not None else None,
     }

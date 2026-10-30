@@ -15,8 +15,10 @@ def _rec(name: str, evse: str) -> tuple[dict, set[str]]:
 
 def test_operator_id_detection() -> None:
     assert operator_id("DE*ISE") == "DEISE"
-    assert operator_id("deise") == "DEISE"
-    assert operator_id("DE ISE") == "DEISE"
+    assert operator_id("de*ise") == "DEISE"
+    assert operator_id("DE * ISE") == "DEISE"
+    assert operator_id("BOSCH") is None
+    assert operator_id("WEMAG") is None
     assert operator_id("Tesla, Inc.") is None
     assert operator_id("DE*ISE GmbH") is None
     assert operator_id(None) is None
