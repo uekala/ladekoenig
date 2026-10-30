@@ -120,3 +120,33 @@ async def test_user_flow_with_location_entity(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"]["location_entity"] == "device_tracker.auto"
+
+
+async def test_options_flow_does_not_pin_default_data_url(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Ladekrone",
+        data={
+            "location": LOCATION,
+            "min_power": "0",
+            "current_type": "any",
+            "connector": "any",
+            "operators": "",
+        },
+    )
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    with patch("custom_components.ladekrone.async_setup_entry", return_value=True):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "location": LOCATION,
+                "min_power": "0",
+                "current_type": "any",
+                "connector": "any",
+                "operators": "",
+                "data_url": "https://uekala.github.io/ladekrone/v1/",
+            },
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert "data_url" not in entry.options

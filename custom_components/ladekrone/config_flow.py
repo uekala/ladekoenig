@@ -136,7 +136,13 @@ class LadekroneOptionsFlow(OptionsFlow):
             errors = _validate(user_input)
             if not errors:
                 data = _clean(user_input)
-                data[CONF_DATA_URL] = str(data.get(CONF_DATA_URL) or DEFAULT_DATA_URL).strip()
+                url = str(data.get(CONF_DATA_URL) or "").strip().rstrip("/")
+                # Die Standardquelle nicht festschreiben, damit ein Umzug der Daten
+                # (wie von ladekoenig nach ladekrone) bestehende Einträge mitnimmt.
+                if url and url != DEFAULT_DATA_URL:
+                    data[CONF_DATA_URL] = url
+                else:
+                    data.pop(CONF_DATA_URL, None)
                 return self.async_create_entry(data=data)
 
         defaults = user_input or {**self.config_entry.data, **self.config_entry.options}
