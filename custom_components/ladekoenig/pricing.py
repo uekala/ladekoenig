@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, time
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 EARTH_RADIUS_KM = 6371.0088
+STEP = timedelta(minutes=15)
+HORIZON = timedelta(hours=24)
 
 CONNECTOR_ALIASES = {
     "ccs": {"ccs"},
@@ -59,6 +61,8 @@ class Offer:
     current: str | None
     connectors: list[str] = field(default_factory=list)
     points: int = 0
+    until: datetime | None = None
+    next_price: float | None = None
 
     def as_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {
@@ -78,6 +82,9 @@ class Offer:
             data["minute_fee_from"] = self.price.minute_fee_from
         if self.price.session_fee is not None:
             data["session_fee"] = round(self.price.session_fee, 2)
+        if self.until is not None:
+            data["until"] = self.until
+            data["next_price"] = round(self.next_price, 2) if self.next_price is not None else None
         return data
 
 
@@ -332,3 +339,140 @@ def count_stations(
         ):
             total += 1
     return total
+
+
+def stations_in_radius(
+    stations: list[dict], lat: float, lon: float, radius_km: float
+) -> list[dict]:
+    """Stationen innerhalb des Suchkreises."""
+    nearby: list[dict] = []
+    for station in stations:
+        try:
+            if distance_km(lat, lon, station["la"], station["lo"]) <= radius_km:
+                nearby.append(station)
+        except (KeyError, TypeError):
+            continue
+    return nearby
+
+
+# --------------------------------------------------------------------------
+# Vorschau: Preiswechsel in den nächsten 24 Stunden
+# --------------------------------------------------------------------------
+
+
+def _has_time(validity: dict | None) -> bool:
+    return bool(
+        validity
+        and (validity.get("in") or validity.get("ex") or validity.get("s") or validity.get("e"))
+    )
+
+
+def is_time_dependent(station: dict) -> bool:
+    """True, wenn sich der Preis einer Station mit der Zeit ändern kann."""
+    for rate in station.get("r") or []:
+        if _has_time(rate.get("w")):
+            return True
+        if any(_has_time(c.get("w")) for c in rate.get("p", [])):
+            return True
+    return False
+
+
+def future_steps(now: datetime, horizon: timedelta = HORIZON) -> list[datetime]:
+    """Viertelstunden-Zeitpunkte ab der nächsten vollen Viertelstunde (UTC).
+
+    Gerechnet wird in UTC, damit die Zeitumstellung keine Schritte verschluckt
+    oder doppelt; ausgewertet wird jeweils in Ortszeit.
+    """
+    base = now.astimezone(UTC).replace(second=0, microsecond=0)
+    step_min = int(STEP.total_seconds() // 60)
+    first = base.replace(minute=0) + timedelta(minutes=(base.minute // step_min + 1) * step_min)
+    return [first + i * STEP for i in range(int(horizon / STEP))]
+
+
+def _price_at(
+    station: dict, lat: float, lon: float, filters: Filters, when: datetime
+) -> Offer | None:
+    return best_offer(station, lat, lon, filters, when.astimezone(LOCAL_TZ))
+
+
+def next_change(
+    station: dict,
+    lat: float,
+    lon: float,
+    filters: Filters,
+    current_kwh: float,
+    steps: list[datetime],
+) -> tuple[datetime | None, float | None]:
+    """Erster Zeitpunkt, an dem sich der Preis ändert, und der neue Preis.
+
+    Ein neuer Preis None heißt: Ab dann gibt es dort keinen Ad-hoc-Preis mehr.
+    """
+    for when in steps:
+        offer = _price_at(station, lat, lon, filters, when)
+        price = offer.price.kwh if offer else None
+        if price is None or round(price, 4) != round(current_kwh, 4):
+            return when, price
+    return None, None
+
+
+def annotate_changes(
+    offers: list[Offer],
+    stations_by_id: dict[str, dict],
+    lat: float,
+    lon: float,
+    filters: Filters,
+    steps: list[datetime],
+) -> None:
+    """Ergänzt bei zeitabhängigen Angeboten, bis wann der Preis gilt."""
+    for offer in offers:
+        station = stations_by_id.get(offer.station_id)
+        if station is None or not is_time_dependent(station):
+            continue
+        offer.until, offer.next_price = next_change(
+            station, lat, lon, filters, offer.price.kwh, steps
+        )
+
+
+@dataclass
+class Outlook:
+    """Günstigstes Angebot in den nächsten 24 Stunden."""
+
+    offer: Offer
+    start: datetime
+    end: datetime | None
+
+
+def cheapest_ahead(
+    nearby: list[dict],
+    current: Offer | None,
+    lat: float,
+    lon: float,
+    filters: Filters,
+    now: datetime,
+    steps: list[datetime] | None = None,
+) -> Outlook | None:
+    """Sucht das günstigste Angebot bis 24 Stunden im Voraus.
+
+    Stationen mit festem Preis können später nicht günstiger werden als jetzt;
+    durchgerechnet werden deshalb nur die zeitabhängigen.
+    """
+    steps = steps if steps is not None else future_steps(now)
+    best, start = current, now
+    dependent = [s for s in nearby if is_time_dependent(s)]
+    for when in steps:
+        for station in dependent:
+            try:
+                offer = _price_at(station, lat, lon, filters, when)
+            except (KeyError, TypeError, ValueError):
+                continue
+            if offer is not None and (best is None or offer.price.kwh < best.price.kwh - 1e-9):
+                best, start = offer, when
+    if best is None:
+        return None
+    station = next((s for s in nearby if s.get("id") == best.station_id), None)
+    end = None
+    if station is not None and is_time_dependent(station):
+        end, _ = next_change(
+            station, lat, lon, filters, best.price.kwh, [t for t in steps if t > start]
+        )
+    return Outlook(best, start, end)

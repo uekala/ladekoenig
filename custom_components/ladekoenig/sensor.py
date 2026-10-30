@@ -18,10 +18,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from . import LadekoenigConfigEntry
 from .const import DOMAIN, TOP_OFFERS
 from .coordinator import LadekoenigCoordinator, LadekoenigData
+from .pricing import Offer
 
 PRICE_UNIT = "€/kWh"
 
@@ -38,14 +40,40 @@ def _cheapest_value(data: LadekoenigData) -> float | None:
     return round(data.offers[0].price.kwh, 4) if data.offers else None
 
 
+def _offer_dict(offer: Offer) -> dict[str, Any]:
+    """Angebot als Attribut; Zeitpunkte in der Zeitzone von Home Assistant."""
+    data = offer.as_dict()
+    if isinstance(data.get("until"), datetime):
+        data["until"] = dt_util.as_local(data["until"]).isoformat()
+    return data
+
+
 def _cheapest_attrs(data: LadekoenigData) -> dict[str, Any]:
     if not data.offers:
         return {"offers": []}
     best = data.offers[0]
-    attrs = best.as_dict()
+    attrs = _offer_dict(best)
     attrs.pop("price", None)
     attrs["price_updated"] = best.price.updated
-    attrs["offers"] = [offer.as_dict() for offer in data.offers[:TOP_OFFERS]]
+    attrs["offers"] = [_offer_dict(offer) for offer in data.offers[:TOP_OFFERS]]
+    return attrs
+
+
+def _ahead_value(data: LadekoenigData) -> float | None:
+    return round(data.outlook.offer.price.kwh, 4) if data.outlook else None
+
+
+def _ahead_attrs(data: LadekoenigData) -> dict[str, Any]:
+    outlook = data.outlook
+    if outlook is None:
+        return {}
+    attrs = outlook.offer.as_dict()
+    attrs.pop("price", None)
+    attrs.pop("until", None)
+    attrs.pop("next_price", None)
+    attrs["from"] = dt_util.as_local(outlook.start).isoformat()
+    attrs["until"] = dt_util.as_local(outlook.end).isoformat() if outlook.end else None
+    attrs["now"] = outlook.start <= dt_util.utcnow()
     return attrs
 
 
@@ -58,6 +86,15 @@ SENSORS: tuple[LadekoenigSensorDescription, ...] = (
         suggested_display_precision=2,
         value_fn=_cheapest_value,
         attrs_fn=_cheapest_attrs,
+    ),
+    LadekoenigSensorDescription(
+        key="cheapest_ahead",
+        translation_key="cheapest_ahead",
+        native_unit_of_measurement=PRICE_UNIT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+        value_fn=_ahead_value,
+        attrs_fn=_ahead_attrs,
     ),
     LadekoenigSensorDescription(
         key="station_count",

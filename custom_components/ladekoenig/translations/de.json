@@ -76,6 +76,9 @@
       "cheapest_price": {
         "name": "Günstigster Preis"
       },
+      "cheapest_ahead": {
+        "name": "Günstigster Preis in 24 h"
+      },
       "station_count": {
         "name": "Ladestationen im Umkreis"
       },

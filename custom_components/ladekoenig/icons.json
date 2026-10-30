@@ -4,6 +4,9 @@
       "cheapest_price": {
         "default": "mdi:ev-station"
       },
+      "cheapest_ahead": {
+        "default": "mdi:calendar-clock"
+      },
       "station_count": {
         "default": "mdi:map-marker-multiple"
       },

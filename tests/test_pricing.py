@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from itertools import pairwise
 from pathlib import Path
 
 import pytest
@@ -124,3 +125,62 @@ def test_tiles_for_radius_cover_station_tiles() -> None:
     keys = tiles_for_radius(*HOME, 10, 0.25)
     for lat, lon in [(50.1101, 8.6801), (50.1301, 8.7001), (50.19, 8.80), (50.03, 8.56)]:
         assert tile_key(lat, lon) in keys
+
+
+# --------------------------------------------------------------------------
+# Vorschau auf die nächsten 24 Stunden
+# --------------------------------------------------------------------------
+
+
+def test_future_steps_start_at_next_quarter() -> None:
+    from custom_components.ladekoenig.pricing import future_steps
+
+    steps = future_steps(_local(20, 7))
+    assert steps[0].astimezone(LOCAL_TZ) == _local(20, 15)
+    assert len(steps) == 96
+    assert steps[1] - steps[0] == steps[-1] - steps[-2]
+
+
+def test_future_steps_across_dst_change() -> None:
+    from custom_components.ladekoenig.pricing import future_steps
+
+    # In der Nacht der Zeitumstellung (25.10.2026) keine doppelten oder fehlenden Schritte
+    steps = future_steps(_local(1, 50, day=25))
+    deltas = {b - a for a, b in pairwise(steps)}
+    assert len(deltas) == 1
+    assert len(set(steps)) == len(steps)
+
+
+def test_next_change_finds_night_tariff(stations: list[dict]) -> None:
+    from custom_components.ladekoenig.pricing import future_steps, next_change
+
+    tesla = _station(stations, "ST-SC-1")
+    when, price = next_change(tesla, *HOME, Filters(), 0.59, future_steps(_local(20, 7)))
+    assert when.astimezone(LOCAL_TZ) == _local(23)
+    assert price == 0.39
+
+
+def test_cheapest_ahead_finds_cheaper_window(stations: list[dict]) -> None:
+    from custom_components.ladekoenig.pricing import cheapest_ahead, stations_in_radius
+
+    now = _local(20, 7)
+    nearby = stations_in_radius(stations, *HOME, 50)
+    offers = find_offers(nearby, *HOME, 50, Filters(), now)
+    outlook = cheapest_ahead(nearby, offers[0], *HOME, Filters(), now)
+    assert outlook.offer.price.kwh == 0.39
+    assert outlook.offer.station_id.endswith("ST-SC-1")
+    assert outlook.start.astimezone(LOCAL_TZ) == _local(23)
+    assert outlook.end.astimezone(LOCAL_TZ) == _local(7, day=28)
+
+
+def test_cheapest_ahead_keeps_current_when_nothing_cheaper(stations: list[dict]) -> None:
+    from custom_components.ladekoenig.pricing import cheapest_ahead, stations_in_radius
+
+    now = _local(23, 30)
+    nearby = stations_in_radius(stations, *HOME, 50)
+    offers = find_offers(nearby, *HOME, 50, Filters(), now)
+    assert offers[0].price.kwh == 0.39
+    outlook = cheapest_ahead(nearby, offers[0], *HOME, Filters(), now)
+    assert outlook.offer is offers[0]
+    assert outlook.start == now
+    assert outlook.end.astimezone(LOCAL_TZ) == _local(7, day=28)

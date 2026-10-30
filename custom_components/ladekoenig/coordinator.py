@@ -28,9 +28,21 @@ from .const import (
     FETCH_INTERVAL,
     REQUEST_TIMEOUT,
     SUPPORTED_FORMAT,
+    TOP_OFFERS,
     UPDATE_INTERVAL,
 )
-from .pricing import Filters, Offer, count_stations, find_offers, tiles_for_radius
+from .pricing import (
+    Filters,
+    Offer,
+    Outlook,
+    annotate_changes,
+    cheapest_ahead,
+    count_stations,
+    find_offers,
+    future_steps,
+    stations_in_radius,
+    tiles_for_radius,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,6 +89,25 @@ class LadekoenigData:
     generated: datetime | None
     attribution: str
     sources: list[dict[str, Any]] = field(default_factory=list)
+    outlook: Outlook | None = None
+
+
+def evaluate(
+    stations: list[dict], settings: SearchSettings, now: datetime, with_outlook: bool = True
+) -> tuple[list[Offer], int, Outlook | None]:
+    """Preise jetzt und (optional) für die nächsten 24 Stunden (läuft im Executor)."""
+    lat, lon, filters = settings.latitude, settings.longitude, settings.filters
+    nearby = stations_in_radius(stations, lat, lon, settings.radius_km)
+    offers = find_offers(nearby, lat, lon, settings.radius_km, filters, now)
+    steps = future_steps(now)
+    by_id = {station["id"]: station for station in nearby if "id" in station}
+    annotate_changes(offers[:TOP_OFFERS], by_id, lat, lon, filters, steps)
+    outlook = None
+    if with_outlook:
+        current = offers[0] if offers else None
+        outlook = cheapest_ahead(nearby, current, lat, lon, filters, now, steps)
+    count = count_stations(nearby, lat, lon, settings.radius_km, filters)
+    return offers, count, outlook
 
 
 class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
@@ -99,6 +130,8 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
         self._tiles: dict[str, list[dict]] = {}
         self._etags: dict[str, str] = {}
         self._last_fetch: datetime | None = None
+        self._outlook_key: tuple | None = None
+        self._outlook: Outlook | None = None
 
     async def _async_update_data(self) -> LadekoenigData:
         now = dt_util.utcnow()
@@ -112,29 +145,25 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
             else:
                 self._last_fetch = now
 
-        settings = self.settings
         stations = [station for tile in self._tiles.values() for station in tile]
-        offers = find_offers(
-            stations,
-            settings.latitude,
-            settings.longitude,
-            settings.radius_km,
-            settings.filters,
-            now,
+        # Die 24-Stunden-Vorschau ändert sich nur zur nächsten Viertelstunde oder
+        # mit neuen Daten; dazwischen wird sie nicht neu berechnet.
+        outlook_key = (future_steps(now)[0], self._last_fetch, self.settings)
+        fresh = outlook_key != self._outlook_key
+        offers, count, outlook = await self.hass.async_add_executor_job(
+            evaluate, stations, self.settings, now, fresh
         )
+        if fresh:
+            self._outlook_key, self._outlook = outlook_key, outlook
+        outlook = self._outlook
         meta = self._meta or {}
         return LadekoenigData(
             offers=offers,
-            station_count=count_stations(
-                stations,
-                settings.latitude,
-                settings.longitude,
-                settings.radius_km,
-                settings.filters,
-            ),
+            station_count=count,
             generated=dt_util.parse_datetime(meta.get("generated") or ""),
             attribution=_attribution(meta),
             sources=list(meta.get("sources") or []),
+            outlook=outlook,
         )
 
     async def _async_fetch(self) -> None:

@@ -72,6 +72,20 @@ async def test_sensors_show_cheapest_offer(
     stamp = hass.states.get("sensor.ladekonig_data_timestamp")
     assert stamp.state == "2026-10-27T03:00:00+00:00"
 
+    # 23:00 Ortszeit Berlin = 22:00 UTC, Nachttarif bis 07:00 = 06:00 UTC
+    night = datetime(2026, 10, 27, 22, 0, tzinfo=UTC)
+    morning = datetime(2026, 10, 28, 6, 0, tzinfo=UTC)
+    tesla = next(o for o in price.attributes["offers"] if o["operator"] == "Tesla")
+    assert dt_util.parse_datetime(tesla["until"]) == night
+    assert tesla["next_price"] == 0.39
+
+    ahead = hass.states.get("sensor.ladekonig_cheapest_price_within_24_h")
+    assert float(ahead.state) == 0.39
+    assert ahead.attributes["operator"] == "Tesla"
+    assert dt_util.parse_datetime(ahead.attributes["from"]) == night
+    assert dt_util.parse_datetime(ahead.attributes["until"]) == morning
+    assert ahead.attributes["now"] is False
+
 
 async def test_price_follows_time_of_day_without_refetch(
     hass: HomeAssistant,
