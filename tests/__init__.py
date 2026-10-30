@@ -1,1 +1,1 @@
-"""Tests für Ladekönig."""
+"""Tests für Ladekrone."""

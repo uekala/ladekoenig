@@ -58,7 +58,7 @@ def _decompress(body: bytes) -> bytes:
 def _request(
     url: str, context: ssl.SSLContext, if_modified_since: str | None
 ) -> tuple[int, bytes, str | None]:
-    headers = {"Accept-Encoding": "gzip", "User-Agent": "ladekoenig-collector"}
+    headers = {"Accept-Encoding": "gzip", "User-Agent": "ladekrone-collector"}
     if if_modified_since:
         headers["If-Modified-Since"] = if_modified_since
     request = urllib.request.Request(url, headers=headers, method="GET")

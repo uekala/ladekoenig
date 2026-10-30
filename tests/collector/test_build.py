@@ -6,7 +6,7 @@ import json
 from argparse import Namespace
 from pathlib import Path
 
-from ladekoenig_collector.build import run
+from ladekrone_collector.build import run
 
 FIXTURE = Path(__file__).parent.parent / "fixtures" / "afir_static_sample.json"
 
@@ -54,7 +54,7 @@ def test_run_writes_diagnostics(tmp_path: Path) -> None:
 
 
 def test_dot_map_ignores_tiles_outside_germany() -> None:
-    from ladekoenig_collector.site import dot_map
+    from ladekrone_collector.site import dot_map
 
     inside = dot_map({"205_26": (10, 5)}, 0.25)
     with_outlier = dot_map({"205_26": (10, 5), "0_0": (1, 0)}, 0.25)

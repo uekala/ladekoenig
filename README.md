@@ -1,10 +1,10 @@
-# Ladekönig
+# Ladekrone
 
-<img src="custom_components/ladekoenig/brand/icon.png" alt="" width="96" align="right">
+<img src="custom_components/ladekrone/brand/icon.png" alt="" width="96" align="right">
 
 Günstigste **Ad-hoc-Ladepreise** in deiner Umgebung, direkt in Home Assistant – so wie Tankerkönig für Sprit, nur für Ladesäulen.
 
-Seit der EU-Verordnung AFIR müssen alle Ladenetze Standorte, Leistung und Ad-hoc-Preise maschinenlesbar über den nationalen Zugangspunkt [Mobilithek](https://mobilithek.info/) bereitstellen. Ladekönig macht diese Daten in Home Assistant nutzbar – ohne dass du selbst einen Mobilithek-Zugang brauchst.
+Seit der EU-Verordnung AFIR müssen alle Ladenetze Standorte, Leistung und Ad-hoc-Preise maschinenlesbar über den nationalen Zugangspunkt [Mobilithek](https://mobilithek.info/) bereitstellen. Ladekrone macht diese Daten in Home Assistant nutzbar – ohne dass du selbst einen Mobilithek-Zugang brauchst.
 
 ## Was es kann
 
@@ -34,9 +34,11 @@ Deine Position verlässt Home Assistant nicht – abgerufen werden nur ganze Kac
 ## Installation über HACS
 
 1. HACS → Integrationen → ⋮ → **Benutzerdefinierte Repositories**
-2. `https://github.com/uekala/ladekoenig` als Kategorie **Integration** hinzufügen
-3. **Ladekönig** installieren und Home Assistant neu starten
-4. Einstellungen → Geräte & Dienste → **Integration hinzufügen** → Ladekönig
+2. `https://github.com/uekala/ladekrone` als Kategorie **Integration** hinzufügen
+3. **Ladekrone** installieren und Home Assistant neu starten
+4. Einstellungen → Geräte & Dienste → **Integration hinzufügen** → Ladekrone
+
+**Umstieg von Ladekönig:** Bis Version 0.2 hieß das Projekt Ladekönig. Alte Integration in HACS entfernen, dieses Repository hinzufügen, Ladekrone installieren und die Suchgebiete neu anlegen.
 
 ## Einrichtung
 
@@ -116,14 +118,14 @@ Die Entitäts-IDs hängen vom gewählten Namen ab.
 ## Datenquelle und Lizenzen
 
 - Grundlage sind die AFIR-Datenangebote der Ladenetze in der Mobilithek (DATEX II v3): statische Angebote und, wo abonniert, die dynamischen Preisaktualisierungen.
-- Verarbeitet werden nur Angebote mit offener Lizenz (CC0, CC BY 4.0, DL-DE). Die genutzten Quellen und Namensnennungen stehen auf der [Datenseite](https://uekala.github.io/ladekoenig/) und im Attribut `attribution` des Preissensors.
+- Verarbeitet werden nur Angebote mit offener Lizenz (CC0, CC BY 4.0, DL-DE). Die genutzten Quellen und Namensnennungen stehen auf der [Datenseite](https://uekala.github.io/ladekrone/) und im Attribut `attribution` des Preissensors.
 - Die Daten werden aufbereitet: Nettopreise in Bruttopreise umgerechnet, Ladepunkte gruppiert, nach Kacheln aufgeteilt.
 - **Ad-hoc-Preise** sind die Preise ohne Vertrag. Mit Ladekarte oder App kann es günstiger oder teurer sein.
 - Alle Angaben ohne Gewähr.
 
-- Welche Quelle wie viele Stationen und Preise liefert und welche abonnierten Quellen gerade nichts liefern, zeigt die Datenseite. Eine [Diagnose je Quelle](https://uekala.github.io/ladekoenig/v1/diag.json) listet Tarifarten, Preistypen und Beispieldaten.
+- Welche Quelle wie viele Stationen und Preise liefert und welche abonnierten Quellen gerade nichts liefern, zeigt die Datenseite. Eine [Diagnose je Quelle](https://uekala.github.io/ladekrone/v1/diag.json) listet Tarifarten, Preistypen und Beispieldaten.
 
-## Grenzen (Version 0.2)
+## Grenzen (Version 0.3)
 
 - Die Daten werden einmal täglich aufbereitet. Dynamische Preise kommen deshalb mit bis zu einem Tag Verzug an.
 - Nicht alle Ladenetze melden schon an die Mobilithek, und nicht jede gemeldete Säule hat einen Preis. Qwello meldet derzeit weder statisch noch dynamisch Preise.
@@ -151,7 +153,7 @@ Lokal testen mit einer heruntergeladenen Angebotsdatei:
 
 ```bash
 cd collector
-python -m ladekoenig_collector --sources sources.json --out ../public --input tesla=/pfad/zur/datei.json
+python -m ladekrone_collector --sources sources.json --out ../public --input tesla=/pfad/zur/datei.json
 ```
 
 ## Entwicklung

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.ladekoenig.const import DOMAIN
+from custom_components.ladekrone.const import DOMAIN
 
 LOCATION = {"latitude": 50.1101, "longitude": 8.6801, "radius": 10000}
 
@@ -21,7 +21,7 @@ async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
 
-    with patch("custom_components.ladekoenig.async_setup_entry", return_value=True):
+    with patch("custom_components.ladekrone.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
@@ -67,7 +67,7 @@ async def test_radius_limits(hass: HomeAssistant) -> None:
 async def test_options_flow_updates_filters(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Ladekönig",
+        title="Ladekrone",
         data={
             "location": LOCATION,
             "min_power": "0",
@@ -81,7 +81,7 @@ async def test_options_flow_updates_filters(hass: HomeAssistant) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
 
-    with patch("custom_components.ladekoenig.async_setup_entry", return_value=True):
+    with patch("custom_components.ladekrone.async_setup_entry", return_value=True):
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
@@ -104,7 +104,7 @@ async def test_user_flow_with_location_entity(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    with patch("custom_components.ladekoenig.async_setup_entry", return_value=True):
+    with patch("custom_components.ladekrone.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {

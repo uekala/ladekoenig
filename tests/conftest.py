@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from ladekoenig_collector.build import merge_sources, tile_key
-from ladekoenig_collector.datex import parse_bytes
+from ladekrone_collector.build import merge_sources, tile_key
+from ladekrone_collector.datex import parse_bytes
 
 pytest_plugins = ["pytest_homeassistant_custom_component"]
 
 FIXTURE = Path(__file__).parent / "fixtures" / "afir_static_sample.json"
-DATA_URL = "https://example.invalid/ladekoenig/v1"
+DATA_URL = "https://example.invalid/ladekrone/v1"
 
 
 @pytest.fixture(autouse=True)

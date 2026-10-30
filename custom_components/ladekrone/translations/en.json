@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up Ladekönig",
+        "title": "Set up Ladekrone",
         "description": "Finds the cheapest ad-hoc charging price within the selected area. Data source: operators' AFIR reports via the German Mobilithek.",
         "data": {
           "name": "Name",
@@ -28,7 +28,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Adjust Ladekönig",
+        "title": "Adjust Ladekrone",
         "data": {
           "location": "Search area",
           "min_power": "Minimum power",

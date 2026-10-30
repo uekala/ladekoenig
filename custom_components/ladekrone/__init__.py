@@ -1,4 +1,4 @@
-"""Ladekönig – günstigste Ad-hoc-Ladepreise in der Umgebung (AFIR/Mobilithek)."""
+"""Ladekrone – günstigste Ad-hoc-Ladepreise in der Umgebung (AFIR/Mobilithek)."""
 
 from __future__ import annotations
 
@@ -7,15 +7,15 @@ from homeassistant.const import Platform
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .coordinator import LadekoenigCoordinator
+from .coordinator import LadekroneCoordinator
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
-type LadekoenigConfigEntry = ConfigEntry[LadekoenigCoordinator]
+type LadekroneConfigEntry = ConfigEntry[LadekroneCoordinator]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: LadekoenigConfigEntry) -> bool:
-    coordinator = LadekoenigCoordinator(hass, entry)
+async def async_setup_entry(hass: HomeAssistant, entry: LadekroneConfigEntry) -> bool:
+    coordinator = LadekroneCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 
@@ -34,9 +34,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: LadekoenigConfigEntry) -
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: LadekoenigConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: LadekroneConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def _async_update_listener(hass: HomeAssistant, entry: LadekoenigConfigEntry) -> None:
+async def _async_update_listener(hass: HomeAssistant, entry: LadekroneConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)

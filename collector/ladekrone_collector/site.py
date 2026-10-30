@@ -1,4 +1,4 @@
-"""Öffentliche Datenseite (GitHub Pages) für Ladekönig.
+"""Öffentliche Datenseite (GitHub Pages) für Ladekrone.
 
 Eine einzige statische HTML-Seite ohne externe Abhängigkeiten. Schriften liegen
 als Dateien neben der Seite (keine Abrufe bei Google), das Herzstück ist eine
@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 
 ASSETS = Path(__file__).parent / "site"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
-REPO_URL = "https://github.com/uekala/ladekoenig"
+REPO_URL = "https://github.com/uekala/ladekrone"
 GERMANY = (47.2, 55.1, 5.8, 15.1)  # Breite min/max, Länge min/max
 MONTHS = [
     "Januar",
@@ -150,7 +150,7 @@ def _waiting(sources: list[dict[str, Any]], diagnostics: dict[str, dict[str, Any
         if diag.get("error"):
             reason = "hat noch keine Daten geliefert"
             if "XML" in diag["error"]:
-                reason = "liefert ein Format, das Ladekönig noch nicht liest"
+                reason = "liefert ein Format, das Ladekrone noch nicht liest"
             items.append(f"<li><strong>{name}</strong> {reason}</li>")
             seen.add(key)
     for source in sources:
@@ -266,7 +266,7 @@ def render_index(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ladekönig – günstig laden in deiner Nähe</title>
+<title>Ladekrone – günstig laden in deiner Nähe</title>
 <meta name="description" content="Ad-hoc-Ladepreise aus den AFIR-Meldungen der Ladenetze,
 aufbereitet für Home Assistant.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
@@ -275,18 +275,18 @@ aufbereitet für Home Assistant.">
 <body>
 <div class="wrap">
 <header class="top">
-<a class="brand" href="{REPO_URL}">{CROWN}Ladekönig</a>
+<a class="brand" href="{REPO_URL}">{CROWN}Ladekrone</a>
 <a href="{REPO_URL}">Quellcode auf GitHub</a>
 </header>
 <main>
 <section class="hero" aria-labelledby="title">
 <div>
 <h1 id="title">Laden zum besten Preis, ganz in deiner Nähe.</h1>
-<p class="lead">Ladekönig zeigt dir in Home Assistant, wo du gerade am günstigsten
+<p class="lead">Ladekrone zeigt dir in Home Assistant, wo du gerade am günstigsten
 ohne Vertrag laden kannst, und wann es später noch günstiger wird. Die Preise melden
 die Ladenetze selbst, so wie es die EU-Verordnung AFIR verlangt.</p>
 <div class="actions">
-<a class="btn primary" href="#loslegen">Ladekönig einrichten</a>
+<a class="btn primary" href="#loslegen">Ladekrone einrichten</a>
 <a class="btn" href="#quellen">Woher die Preise kommen</a>
 </div>
 <p class="fresh">Stand: <strong>{stand}</strong>.
@@ -306,7 +306,7 @@ aus {with_data} Quellen, davon {_num(priced_total)} Stationen mit Preis.</p>
 <section id="quellen" aria-labelledby="quellen-title">
 <h2 id="quellen-title">Woher die Preise kommen</h2>
 <p class="intro">Alle Daten stammen aus den AFIR-Meldungen der Ladenetze an den nationalen
-Zugangspunkt <a href="https://mobilithek.info/">Mobilithek</a>. Ladekönig nutzt nur
+Zugangspunkt <a href="https://mobilithek.info/">Mobilithek</a>. Ladekrone nutzt nur
 Angebote mit offener Lizenz, rechnet Netto- in Bruttopreise um und fasst doppelte
 Stationen zusammen. Der Balken zeigt, welcher Anteil der Stationen einen Preis meldet.</p>
 <div class="table" role="region" aria-labelledby="quellen-title" tabindex="0">
@@ -328,9 +328,9 @@ Stationen zusammen. Der Balken zeigt, welcher Anteil der Stationen einen Preis m
 brauchst du nicht.</p>
 <ol class="steps">
 <li>In HACS unter <em>Benutzerdefinierte Repositories</em> die Adresse
-<code>github.com/uekala/ladekoenig</code> als Integration hinzufügen.</li>
-<li><strong>Ladekönig</strong> installieren und Home Assistant neu starten.</li>
-<li>Unter <em>Geräte &amp; Dienste</em> Ladekönig hinzufügen und dein Suchgebiet
+<code>github.com/uekala/ladekrone</code> als Integration hinzufügen.</li>
+<li><strong>Ladekrone</strong> installieren und Home Assistant neu starten.</li>
+<li>Unter <em>Geräte &amp; Dienste</em> Ladekrone hinzufügen und dein Suchgebiet
 auf der Karte wählen. Mehrere Gebiete sind möglich.</li>
 </ol>
 </section>

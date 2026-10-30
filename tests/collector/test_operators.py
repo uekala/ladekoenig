@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ladekoenig_collector.operators import (
+from ladekrone_collector.operators import (
     build_operator_names,
     operator_id,
     resolve_operator_ids,

@@ -11,7 +11,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.ladekoenig.const import DOMAIN
+from custom_components.ladekrone.const import DOMAIN
 
 from .conftest import DATA_URL
 
@@ -21,7 +21,7 @@ LOCATION = {"latitude": 50.1101, "longitude": 8.6801, "radius": 10000}
 def _entry(hass: HomeAssistant, **extra) -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Ladekönig",
+        title="Ladekrone",
         data={
             "location": LOCATION,
             "min_power": "0",
@@ -57,7 +57,7 @@ async def test_sensors_show_cheapest_offer(
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
 
-    price = hass.states.get("sensor.ladekonig_cheapest_price")
+    price = hass.states.get("sensor.ladekrone_cheapest_price")
     assert price is not None
     assert float(price.state) == 0.49
     assert price.attributes["unit_of_measurement"] == "€/kWh"
@@ -65,11 +65,11 @@ async def test_sensors_show_cheapest_offer(
     assert len(price.attributes["offers"]) == 3
     assert "Tesla Germany GmbH" in price.attributes["attribution"]
 
-    count = hass.states.get("sensor.ladekonig_charging_stations_in_area")
+    count = hass.states.get("sensor.ladekrone_charging_stations_in_area")
     assert count.state == "4"
     assert count.attributes["with_price"] == 3
 
-    stamp = hass.states.get("sensor.ladekonig_data_timestamp")
+    stamp = hass.states.get("sensor.ladekrone_data_timestamp")
     assert stamp.state == "2026-10-27T03:00:00+00:00"
 
     # 23:00 Ortszeit Berlin = 22:00 UTC, Nachttarif bis 07:00 = 06:00 UTC
@@ -79,7 +79,7 @@ async def test_sensors_show_cheapest_offer(
     assert dt_util.parse_datetime(tesla["until"]) == night
     assert tesla["next_price"] == 0.39
 
-    ahead = hass.states.get("sensor.ladekonig_cheapest_price_within_24_h")
+    ahead = hass.states.get("sensor.ladekrone_cheapest_price_within_24_h")
     assert float(ahead.state) == 0.39
     assert ahead.attributes["operator"] == "Tesla"
     assert dt_util.parse_datetime(ahead.attributes["from"]) == night
@@ -99,14 +99,14 @@ async def test_price_follows_time_of_day_without_refetch(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert float(hass.states.get("sensor.ladekonig_cheapest_price").state) == 0.59
+    assert float(hass.states.get("sensor.ladekrone_cheapest_price").state) == 0.59
     calls = aioclient_mock.call_count
 
     freezer.move_to(datetime(2026, 10, 27, 22, 10, tzinfo=UTC))  # 23:10 Ortszeit
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=6))
     await hass.async_block_till_done(wait_background_tasks=True)
 
-    assert float(hass.states.get("sensor.ladekonig_cheapest_price").state) == 0.39
+    assert float(hass.states.get("sensor.ladekrone_cheapest_price").state) == 0.39
     assert aioclient_mock.call_count == calls  # nur neu bewertet, nicht neu geladen
 
 
@@ -139,7 +139,7 @@ async def test_keeps_old_data_when_refetch_fails(
     await hass.async_block_till_done(wait_background_tasks=True)
 
     assert aioclient_mock.call_count == 1  # Neuabruf wurde versucht
-    state = hass.states.get("sensor.ladekonig_cheapest_price")
+    state = hass.states.get("sensor.ladekrone_cheapest_price")
     assert state.state != "unavailable"
     assert float(state.state) == 0.49
 
@@ -175,9 +175,9 @@ async def test_search_follows_location_entity(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    price = hass.states.get("sensor.ladekonig_cheapest_price")
+    price = hass.states.get("sensor.ladekrone_cheapest_price")
     assert float(price.state) == 0.49
-    count = hass.states.get("sensor.ladekonig_charging_stations_in_area")
+    count = hass.states.get("sensor.ladekrone_charging_stations_in_area")
     assert count.attributes["center_source"] == "device_tracker.auto"
 
     # Auto fährt nach Berlin: dort gibt es keine Stationen im Beispiel
@@ -187,12 +187,12 @@ async def test_search_follows_location_entity(
     freezer.tick(timedelta(seconds=15))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    assert hass.states.get("sensor.ladekonig_cheapest_price").state == "unknown"
+    assert hass.states.get("sensor.ladekrone_cheapest_price").state == "unknown"
 
     # Ohne Position gilt der feste Ort
     hass.states.async_set("device_tracker.auto", "unavailable", {})
     freezer.tick(timedelta(seconds=15))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    count = hass.states.get("sensor.ladekonig_charging_stations_in_area")
+    count = hass.states.get("sensor.ladekrone_charging_stations_in_area")
     assert count.attributes["center_source"] == "fixed"

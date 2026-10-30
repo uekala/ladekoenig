@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from ladekoenig_collector.build import main, merge_sources, tile_key
-from ladekoenig_collector.datex import UnsupportedFormatError, parse_bytes
+from ladekrone_collector.build import main, merge_sources, tile_key
+from ladekrone_collector.datex import UnsupportedFormatError, parse_bytes
 
 FIXTURE = Path(__file__).parent.parent / "fixtures" / "afir_static_sample.json"
 SOURCES = Path(__file__).parents[2] / "collector" / "sources.json"
@@ -107,7 +107,7 @@ def test_build_fails_without_any_source(tmp_path: Path) -> None:
 
 
 def test_diagnose_counts_rate_policies() -> None:
-    from ladekoenig_collector.datex import diagnose, load_document
+    from ladekrone_collector.datex import diagnose, load_document
 
     result = diagnose(load_document(FIXTURE.read_bytes()))
     assert result["rates"] > 0
@@ -118,7 +118,7 @@ def test_diagnose_counts_rate_policies() -> None:
 
 
 def test_legal_name_wins_over_operator_id() -> None:
-    from ladekoenig_collector.datex import _organisation_name
+    from ladekrone_collector.datex import _organisation_name
 
     org = {
         "afacAnOrganisation": {
@@ -178,7 +178,7 @@ def _status_doc(point_id: str, rate_ref: str, price: float) -> dict:
 
 
 def _first_point_id(document: dict) -> str:
-    from ladekoenig_collector.datex import _iter_dicts
+    from ladekrone_collector.datex import _iter_dicts
 
     for item in _iter_dicts(document):
         point = item.get("aegiElectricChargingPoint")
@@ -190,7 +190,7 @@ def _first_point_id(document: dict) -> str:
 def test_dynamic_update_without_static_rate_becomes_adhoc() -> None:
     import copy
 
-    from ladekoenig_collector.datex import _iter_dicts, load_document, parse_document, parse_status
+    from ladekrone_collector.datex import _iter_dicts, load_document, parse_document, parse_status
 
     document = load_document(FIXTURE.read_bytes())
     stripped = copy.deepcopy(document)
@@ -207,7 +207,7 @@ def test_dynamic_update_without_static_rate_becomes_adhoc() -> None:
 
 
 def test_dynamic_update_replaces_known_rate() -> None:
-    from ladekoenig_collector.datex import _iter_dicts, load_document, parse_document, parse_status
+    from ladekrone_collector.datex import _iter_dicts, load_document, parse_document, parse_status
 
     document = load_document(FIXTURE.read_bytes())
     rate = next(

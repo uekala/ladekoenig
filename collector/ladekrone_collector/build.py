@@ -31,7 +31,7 @@ FORMAT_VERSION = 1
 OPEN_LICENSES = {"CC0-1.0", "CC-BY-4.0", "DL-DE-ZERO-2.0", "DL-DE-BY-2.0"}
 DYNAMIC_ROUNDS = 300
 
-_LOGGER = logging.getLogger("ladekoenig")
+_LOGGER = logging.getLogger("ladekrone")
 
 
 def tile_key(lat: float, lon: float) -> str:
@@ -254,7 +254,7 @@ def run(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Ladekönig-Datensammler")
+    parser = argparse.ArgumentParser(description="Ladekrone-Datensammler")
     parser.add_argument("--sources", required=True, help="Pfad zu sources.json")
     parser.add_argument("--out", required=True, help="Ausgabeverzeichnis (GitHub Pages)")
     parser.add_argument("--cache", default=".cache/mobilithek", help="Cache für Rohdaten")

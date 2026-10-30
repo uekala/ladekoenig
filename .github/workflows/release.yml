@@ -17,7 +17,7 @@ jobs:
       - name: Version bestimmen
         id: version
         run: |
-          manifest=$(python3 -c "import json; print(json.load(open('custom_components/ladekoenig/manifest.json'))['version'])")
+          manifest=$(python3 -c "import json; print(json.load(open('custom_components/ladekrone/manifest.json'))['version'])")
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
             if [ "${GITHUB_REF_NAME#v}" != "$manifest" ]; then
               echo "::error::Tag $GITHUB_REF_NAME passt nicht zur manifest.json ($manifest)"
@@ -40,4 +40,4 @@ jobs:
             echo "::error::Release $TAG gibt es schon – erst die Version in manifest.json erhöhen"
             exit 1
           fi
-          gh release create "$TAG" --target "$GITHUB_SHA" --title "Ladekönig $VERSION" --notes-file notes.md
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "Ladekrone $VERSION" --notes-file notes.md

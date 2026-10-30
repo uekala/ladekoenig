@@ -67,7 +67,7 @@ jobs:
         env:
           MOBILITHEK_SUBSCRIPTIONS: ${{ secrets.MOBILITHEK_SUBSCRIPTIONS }}
         run: >-
-          python -m ladekoenig_collector
+          python -m ladekrone_collector
           --sources sources.json
           --out ../public
           --cache ../.cache/mobilithek

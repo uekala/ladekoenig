@@ -1,12 +1,12 @@
-"""Konstanten für Ladekönig."""
+"""Konstanten für Ladekrone."""
 
 from datetime import timedelta
 from typing import Final
 
-DOMAIN: Final = "ladekoenig"
+DOMAIN: Final = "ladekrone"
 
-DEFAULT_NAME: Final = "Ladekönig"
-DEFAULT_DATA_URL: Final = "https://uekala.github.io/ladekoenig/v1"
+DEFAULT_NAME: Final = "Ladekrone"
+DEFAULT_DATA_URL: Final = "https://uekala.github.io/ladekrone/v1"
 DEFAULT_RADIUS_M: Final = 10_000
 MAX_RADIUS_M: Final = 50_000
 

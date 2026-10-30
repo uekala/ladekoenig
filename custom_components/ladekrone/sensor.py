@@ -1,4 +1,4 @@
-"""Sensoren für Ladekönig."""
+"""Sensoren für Ladekrone."""
 
 from __future__ import annotations
 
@@ -20,23 +20,23 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from . import LadekoenigConfigEntry
+from . import LadekroneConfigEntry
 from .const import DOMAIN, TOP_OFFERS
-from .coordinator import LadekoenigCoordinator, LadekoenigData
+from .coordinator import LadekroneCoordinator, LadekroneData
 from .pricing import Offer
 
 PRICE_UNIT = "€/kWh"
 
 
 @dataclass(frozen=True, kw_only=True)
-class LadekoenigSensorDescription(SensorEntityDescription):
-    """Beschreibt einen Ladekönig-Sensor."""
+class LadekroneSensorDescription(SensorEntityDescription):
+    """Beschreibt einen Ladekrone-Sensor."""
 
-    value_fn: Callable[[LadekoenigData], float | int | datetime | None]
-    attrs_fn: Callable[[LadekoenigData], dict[str, Any]] | None = None
+    value_fn: Callable[[LadekroneData], float | int | datetime | None]
+    attrs_fn: Callable[[LadekroneData], dict[str, Any]] | None = None
 
 
-def _cheapest_value(data: LadekoenigData) -> float | None:
+def _cheapest_value(data: LadekroneData) -> float | None:
     return round(data.offers[0].price.kwh, 4) if data.offers else None
 
 
@@ -48,7 +48,7 @@ def _offer_dict(offer: Offer) -> dict[str, Any]:
     return data
 
 
-def _cheapest_attrs(data: LadekoenigData) -> dict[str, Any]:
+def _cheapest_attrs(data: LadekroneData) -> dict[str, Any]:
     if not data.offers:
         return {"offers": []}
     best = data.offers[0]
@@ -59,11 +59,11 @@ def _cheapest_attrs(data: LadekoenigData) -> dict[str, Any]:
     return attrs
 
 
-def _ahead_value(data: LadekoenigData) -> float | None:
+def _ahead_value(data: LadekroneData) -> float | None:
     return round(data.outlook.offer.price.kwh, 4) if data.outlook else None
 
 
-def _ahead_attrs(data: LadekoenigData) -> dict[str, Any]:
+def _ahead_attrs(data: LadekroneData) -> dict[str, Any]:
     outlook = data.outlook
     if outlook is None:
         return {}
@@ -77,8 +77,8 @@ def _ahead_attrs(data: LadekoenigData) -> dict[str, Any]:
     return attrs
 
 
-SENSORS: tuple[LadekoenigSensorDescription, ...] = (
-    LadekoenigSensorDescription(
+SENSORS: tuple[LadekroneSensorDescription, ...] = (
+    LadekroneSensorDescription(
         key="cheapest_price",
         translation_key="cheapest_price",
         native_unit_of_measurement=PRICE_UNIT,
@@ -87,7 +87,7 @@ SENSORS: tuple[LadekoenigSensorDescription, ...] = (
         value_fn=_cheapest_value,
         attrs_fn=_cheapest_attrs,
     ),
-    LadekoenigSensorDescription(
+    LadekroneSensorDescription(
         key="cheapest_ahead",
         translation_key="cheapest_ahead",
         native_unit_of_measurement=PRICE_UNIT,
@@ -96,7 +96,7 @@ SENSORS: tuple[LadekoenigSensorDescription, ...] = (
         value_fn=_ahead_value,
         attrs_fn=_ahead_attrs,
     ),
-    LadekoenigSensorDescription(
+    LadekroneSensorDescription(
         key="station_count",
         translation_key="station_count",
         state_class=SensorStateClass.MEASUREMENT,
@@ -108,7 +108,7 @@ SENSORS: tuple[LadekoenigSensorDescription, ...] = (
             "center_longitude": data.center[1] if data.center else None,
         },
     ),
-    LadekoenigSensorDescription(
+    LadekroneSensorDescription(
         key="data_updated",
         translation_key="data_updated",
         device_class=SensorDeviceClass.TIMESTAMP,
@@ -120,21 +120,21 @@ SENSORS: tuple[LadekoenigSensorDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: LadekoenigConfigEntry,
+    entry: LadekroneConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data
-    async_add_entities(LadekoenigSensor(coordinator, description) for description in SENSORS)
+    async_add_entities(LadekroneSensor(coordinator, description) for description in SENSORS)
 
 
-class LadekoenigSensor(CoordinatorEntity[LadekoenigCoordinator], SensorEntity):
-    """Ein Ladekönig-Sensor."""
+class LadekroneSensor(CoordinatorEntity[LadekroneCoordinator], SensorEntity):
+    """Ein Ladekrone-Sensor."""
 
     _attr_has_entity_name = True
-    entity_description: LadekoenigSensorDescription
+    entity_description: LadekroneSensorDescription
 
     def __init__(
-        self, coordinator: LadekoenigCoordinator, description: LadekoenigSensorDescription
+        self, coordinator: LadekroneCoordinator, description: LadekroneSensorDescription
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = description
@@ -143,10 +143,10 @@ class LadekoenigSensor(CoordinatorEntity[LadekoenigCoordinator], SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,
-            manufacturer="Ladekönig",
+            manufacturer="Ladekrone",
             model="AFIR-Ad-hoc-Preise (Mobilithek)",
             entry_type=DeviceEntryType.SERVICE,
-            configuration_url="https://github.com/uekala/ladekoenig",
+            configuration_url="https://github.com/uekala/ladekrone",
         )
 
     @property

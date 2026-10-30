@@ -1,0 +1,1 @@
+"""Ladekrone-Datensammler: AFIR-Ladepreise aus der Mobilithek."""

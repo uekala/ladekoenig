@@ -1,6 +1,6 @@
 {
-  "domain": "ladekoenig",
-  "name": "Ladekönig",
+  "domain": "ladekrone",
+  "name": "Ladekrone",
   "categories": [
     "energy.ev_charging",
     "energy.energy_prices"
@@ -10,10 +10,10 @@
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/uekala/ladekoenig",
+  "documentation": "https://github.com/uekala/ladekrone",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/uekala/ladekoenig/issues",
+  "issue_tracker": "https://github.com/uekala/ladekrone/issues",
   "requirements": [],
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

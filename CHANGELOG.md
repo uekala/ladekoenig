@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.3.0
+
+- **Neuer Name: Ladekrone.** Ladekönig heißt jetzt Ladekrone, die Krone bleibt. Repository, Integration (`ladekrone`) und Datenseite sind umbenannt.
+- **Umstieg:** In HACS das Repository `uekala/ladekrone` hinzufügen und Ladekrone installieren, die alte Integration Ladekönig entfernen und die Suchgebiete neu anlegen. Entitäts-IDs richten sich wie bisher nach dem Namen des Suchgebiets.
+
 ## 0.2.0
 
 - **Günstigster Preis in 24 h**: neuer Sensor mit dem niedrigsten Preis der nächsten 24 Stunden im Umkreis, inklusive Zeitfenster (`from`, `until`).

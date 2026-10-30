@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Ladekönig einrichten",
+        "title": "Ladekrone einrichten",
         "description": "Findet den günstigsten Ad-hoc-Ladepreis im gewählten Umkreis. Datenquelle: AFIR-Meldungen der Ladenetze über die Mobilithek.",
         "data": {
           "name": "Name",
@@ -28,7 +28,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Ladekönig anpassen",
+        "title": "Ladekrone anpassen",
         "data": {
           "location": "Suchgebiet",
           "min_power": "Mindestleistung",

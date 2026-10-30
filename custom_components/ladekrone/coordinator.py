@@ -1,4 +1,4 @@
-"""Datenabruf und Auswertung für Ladekönig."""
+"""Datenabruf und Auswertung für Ladekrone."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ class SearchSettings:
 
 
 @dataclass
-class LadekoenigData:
+class LadekroneData:
     """Ergebnis einer Auswertung."""
 
     offers: list[Offer]
@@ -118,7 +118,7 @@ def evaluate(
     return offers, count, outlook
 
 
-class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
+class LadekroneCoordinator(DataUpdateCoordinator[LadekroneData]):
     """Lädt die Kacheln selten neu und wertet die Preise alle paar Minuten aus,
     damit tageszeitabhängige Preise (z. B. Tesla-Nachttarif) rechtzeitig wechseln."""
 
@@ -160,7 +160,7 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
             return True
         return distance_km(lat, lon, *self.data.center) >= MOVE_THRESHOLD_KM
 
-    async def _async_update_data(self) -> LadekoenigData:
+    async def _async_update_data(self) -> LadekroneData:
         now = dt_util.utcnow()
         lat, lon, center_source = self.center()
         if self._last_fetch is None or now - self._last_fetch >= FETCH_INTERVAL:
@@ -191,7 +191,7 @@ class LadekoenigCoordinator(DataUpdateCoordinator[LadekoenigData]):
             self._outlook_key, self._outlook = outlook_key, outlook
         outlook = self._outlook
         meta = self._meta or {}
-        return LadekoenigData(
+        return LadekroneData(
             offers=offers,
             station_count=count,
             generated=dt_util.parse_datetime(meta.get("generated") or ""),

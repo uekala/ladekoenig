@@ -17,7 +17,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 
-from ladekoenig_collector.mobilithek import FetchError, build_ssl_context, fetch_subscription
+from ladekrone_collector.mobilithek import FetchError, build_ssl_context, fetch_subscription
 
 T0 = dt.datetime(2026, 10, 1, 3, 0, tzinfo=dt.UTC)
 PACKAGES = [
@@ -97,7 +97,7 @@ def pki(tmp_path: Path) -> dict[str, str]:
     server_key = ec.generate_private_key(ec.SECP256R1())
     server = _cert("localhost", ca_key, ca_name, server_key, san="localhost")
     client_key = ec.generate_private_key(ec.SECP256R1())
-    client = _cert("ladekoenig", ca_key, ca_name, client_key)
+    client = _cert("ladekrone", ca_key, ca_name, client_key)
     return {
         "ca": _write(tmp_path / "ca.pem", ca),
         "server": _write(tmp_path / "server.pem", server, server_key),
@@ -176,7 +176,7 @@ def test_fetches_newest_package_and_uses_cache(server, pki, tmp_path: Path) -> N
 
 
 def test_client_certificate_is_required(server, pki, tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr("ladekoenig_collector.mobilithek.RETRY_DELAY", 0)
+    monkeypatch.setattr("ladekrone_collector.mobilithek.RETRY_DELAY", 0)
     url, _ = server
     context = ssl.create_default_context()
     context.load_verify_locations(pki["ca"])

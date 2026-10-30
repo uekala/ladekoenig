@@ -1,4 +1,4 @@
-"""Einrichtungsdialog für Ladekönig."""
+"""Einrichtungsdialog für Ladekrone."""
 
 from __future__ import annotations
 
@@ -91,8 +91,8 @@ def _clean(user_input: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
-class LadekoenigConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Erstellt einen Ladekönig-Eintrag pro Suchgebiet."""
+class LadekroneConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Erstellt einen Ladekrone-Eintrag pro Suchgebiet."""
 
     VERSION = 1
 
@@ -124,10 +124,10 @@ class LadekoenigConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        return LadekoenigOptionsFlow()
+        return LadekroneOptionsFlow()
 
 
-class LadekoenigOptionsFlow(OptionsFlow):
+class LadekroneOptionsFlow(OptionsFlow):
     """Suchgebiet und Filter nachträglich ändern."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:

@@ -1,4 +1,4 @@
-"""Diagnosedaten für Ladekönig (Standort wird ausgeblendet)."""
+"""Diagnosedaten für Ladekrone (Standort wird ausgeblendet)."""
 
 from __future__ import annotations
 
@@ -7,14 +7,14 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from . import LadekoenigConfigEntry
+from . import LadekroneConfigEntry
 from .const import CONF_LOCATION
 
 TO_REDACT = {CONF_LOCATION, "latitude", "longitude", "address"}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: LadekoenigConfigEntry
+    hass: HomeAssistant, entry: LadekroneConfigEntry
 ) -> dict[str, Any]:
     coordinator = entry.runtime_data
     data = coordinator.data
