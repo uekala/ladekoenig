@@ -129,3 +129,93 @@ def test_legal_name_wins_over_operator_id() -> None:
     assert _organisation_name(org) == "EWE Go GmbH"
     org["afacAnOrganisation"]["name"]["values"][0]["value"] = "EWE Go"
     assert _organisation_name(org) == "EWE Go"
+
+
+def _status_doc(point_id: str, rate_ref: str, price: float) -> dict:
+    return {
+        "messageContainer": {
+            "payload": [
+                {
+                    "aegiEnergyInfrastructureStatusPublication": {
+                        "energyInfrastructureSiteStatus": [
+                            {
+                                "energyInfrastructureStationStatus": [
+                                    {
+                                        "refillPointStatus": [
+                                            {
+                                                "aegiElectricChargingPointStatus": {
+                                                    "reference": {"idG": point_id},
+                                                    "energyRateUpdate": [
+                                                        {
+                                                            "lastUpdated": "2026-10-30T10:00:00Z",
+                                                            "energyRateReference": {
+                                                                "targetClass": "EnergyRate",
+                                                                "idG": rate_ref,
+                                                            },
+                                                            "energyPrice": [
+                                                                {
+                                                                    "priceType": {
+                                                                        "value": "pricePerKWh"
+                                                                    },
+                                                                    "value": price,
+                                                                    "taxIncluded": True,
+                                                                }
+                                                            ],
+                                                        }
+                                                    ],
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+
+
+def _first_point_id(document: dict) -> str:
+    from ladekoenig_collector.datex import _iter_dicts
+
+    for item in _iter_dicts(document):
+        point = item.get("aegiElectricChargingPoint")
+        if isinstance(point, dict) and point.get("idG"):
+            return point["idG"]
+    raise AssertionError("kein Ladepunkt mit idG im Beispiel")
+
+
+def test_dynamic_update_without_static_rate_becomes_adhoc() -> None:
+    import copy
+
+    from ladekoenig_collector.datex import _iter_dicts, load_document, parse_document, parse_status
+
+    document = load_document(FIXTURE.read_bytes())
+    stripped = copy.deepcopy(document)
+    for item in _iter_dicts(stripped):
+        item.pop("electricEnergy", None)
+    point_id = _first_point_id(stripped)
+    assert all(not rec.get("r") for rec, _ in parse_document(stripped, "x"))
+
+    updates = parse_status(_status_doc(point_id, "unbekannt", 0.55))
+    records = [rec for rec, _ in parse_document(stripped, "x", updates)]
+    priced = [rec for rec in records if rec.get("r")]
+    assert len(priced) == 1
+    assert priced[0]["r"][0]["p"][0]["v"] == 0.55
+
+
+def test_dynamic_update_replaces_known_rate() -> None:
+    from ladekoenig_collector.datex import _iter_dicts, load_document, parse_document, parse_status
+
+    document = load_document(FIXTURE.read_bytes())
+    rate = next(
+        item
+        for item in _iter_dicts(document)
+        if "ratePolicy" in item and isinstance(item.get("idG"), str)
+    )
+    updates = parse_status(_status_doc("egal", rate["idG"], 0.11))
+    records = [rec for rec, _ in parse_document(document, "x", updates)]
+    values = {c["v"] for rec in records for r in rec.get("r", []) for c in r["p"]}
+    assert 0.11 in values

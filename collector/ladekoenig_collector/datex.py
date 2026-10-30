@@ -15,11 +15,14 @@ import hashlib
 import json
 import re
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 from typing import Any
 
 from .operators import operator_id
 
 PUBLICATION_KEY = "aegiEnergyInfrastructureTablePublication"
+STATUS_KEY = "aegiEnergyInfrastructureStatusPublication"
+ADHOC_POLICY = {"value": "adHoc"}
 
 DAYS = {
     "monday": 0,
@@ -364,12 +367,18 @@ def _is_adhoc(rate: Any) -> bool:
 
 
 def _adhoc_rates(holder: dict, rate_index: dict[str, dict]) -> list[dict]:
-    """Alle Ad-hoc-Tarife eines Elements (Ladepunkt oder Station)."""
+    """Alle Ad-hoc-Tarife eines Elements (Ladepunkt oder Station).
+
+    Inline-Tarife werden über ``rate_index`` aufgelöst, damit dort eingespielte
+    Preisaktualisierungen aus den dynamischen Daten greifen.
+    """
     found: list[dict] = []
     for energy in _as_list(holder.get("electricEnergy")):
         if not isinstance(energy, dict):
             continue
         for rate in _as_list(energy.get("energyRate")):
+            if isinstance(rate, dict) and isinstance(rate.get("idG"), str):
+                rate = rate_index.get(rate["idG"], rate)
             if _is_adhoc(rate):
                 found.append(rate)
         for ref in _as_list(energy.get("energyRateByReference")):
@@ -378,6 +387,90 @@ def _adhoc_rates(holder: dict, rate_index: dict[str, dict]) -> list[dict]:
             if _is_adhoc(rate):
                 found.append(rate)
     return found
+
+
+# --------------------------------------------------------------------------
+# Dynamische Daten: Preisaktualisierungen (EnergyRateUpdate)
+# --------------------------------------------------------------------------
+
+
+@dataclass
+class RateUpdates:
+    """Preisaktualisierungen aus einer dynamischen AFIR-Publikation."""
+
+    by_point: dict[str, list[dict]] = field(default_factory=dict)
+    by_rate: dict[str, dict] = field(default_factory=dict)
+
+    def __bool__(self) -> bool:
+        return bool(self.by_point or self.by_rate)
+
+
+def parse_status(document: Any) -> RateUpdates:
+    """Liest alle EnergyRateUpdates (je Ladepunkt und je Tarif, jeweils der neueste)."""
+    updates = RateUpdates()
+    for item in _iter_dicts(document):
+        publication = item.get(STATUS_KEY)
+        if not isinstance(publication, dict):
+            continue
+        for status in _iter_dicts(publication):
+            if "energyRateUpdate" not in status:
+                continue
+            reference = status.get("reference")
+            point_id = reference.get("idG") if isinstance(reference, dict) else None
+            for raw in _as_list(status.get("energyRateUpdate")):
+                if not isinstance(raw, dict) or not _as_list(raw.get("energyPrice")):
+                    continue
+                ref = raw.get("energyRateReference")
+                rate_id = ref.get("idG") if isinstance(ref, dict) else None
+                entry = {
+                    "ref": rate_id if isinstance(rate_id, str) else None,
+                    "energyPrice": _as_list(raw.get("energyPrice")),
+                    "lastUpdated": raw.get("lastUpdated"),
+                }
+                if isinstance(point_id, str):
+                    updates.by_point.setdefault(point_id, []).append(entry)
+                if entry["ref"]:
+                    known = updates.by_rate.get(entry["ref"])
+                    if known is None or str(entry["lastUpdated"] or "") >= str(
+                        known["lastUpdated"] or ""
+                    ):
+                        updates.by_rate[entry["ref"]] = entry
+    return updates
+
+
+def _apply_rate_updates(rate_index: dict[str, dict], updates: RateUpdates) -> int:
+    """Ersetzt die Preise bekannter Tarife durch die neuesten dynamischen Werte."""
+    changed = 0
+    for rate_id, update in updates.by_rate.items():
+        rate = rate_index.get(rate_id)
+        if rate is None:
+            continue
+        patched = dict(rate)
+        patched["energyPrice"] = update["energyPrice"]
+        if isinstance(update.get("lastUpdated"), str):
+            patched["lastUpdated"] = update["lastUpdated"]
+        rate_index[rate_id] = patched
+        changed += 1
+    return changed
+
+
+def _orphan_rates(point_id: Any, updates: RateUpdates, rate_index: dict[str, dict]) -> list[dict]:
+    """Aktualisierungen ohne statischen Tarif (z. B. Elli, Qwello).
+
+    Laut AFIR sind die dynamischen Preise die Ad-hoc-Preise; fehlt der
+    statische Tarif, wird die Aktualisierung deshalb als Ad-hoc-Tarif gelesen.
+    """
+    if not isinstance(point_id, str):
+        return []
+    rates = []
+    for entry in updates.by_point.get(point_id, []):
+        if entry["ref"] and entry["ref"] in rate_index:
+            continue
+        rate = {"ratePolicy": ADHOC_POLICY, "energyPrice": entry["energyPrice"]}
+        if isinstance(entry.get("lastUpdated"), str):
+            rate["lastUpdated"] = entry["lastUpdated"]
+        rates.append(rate)
+    return rates
 
 
 # --------------------------------------------------------------------------
@@ -420,6 +513,7 @@ def _station(
     site: dict,
     source: str,
     rate_index: dict[str, dict],
+    updates: RateUpdates | None = None,
 ) -> tuple[dict, set[str]] | None:
     coords = _coordinates(station.get("locationReference")) or _coordinates(
         site.get("locationReference")
@@ -457,7 +551,10 @@ def _station(
         evse = _external_id(point, "evseId")
         if evse:
             evse_ids.add(evse.replace("*", "").replace(" ", "").upper())
-        point_rates = [r for r in map(_rate, _adhoc_rates(point, rate_index)) if r]
+        raw_rates = _adhoc_rates(point, rate_index)
+        if updates:
+            raw_rates += _orphan_rates(point.get("idG"), updates, rate_index)
+        point_rates = [r for r in map(_rate, raw_rates) if r]
         chosen = point_rates or station_rates
         rate_refs = tuple(sorted(register(r) for r in chosen))
         current = _enum(point.get("currentType"))
@@ -512,8 +609,14 @@ def iter_publications(document: Any) -> Iterator[dict]:
             yield publication
 
 
-def parse_document(document: Any, source: str) -> list[tuple[dict, set[str]]]:
-    """Wandelt ein geparstes JSON-Dokument in Stationsdatensätze um."""
+def parse_document(
+    document: Any, source: str, updates: RateUpdates | None = None
+) -> list[tuple[dict, set[str]]]:
+    """Wandelt ein geparstes JSON-Dokument in Stationsdatensätze um.
+
+    ``updates`` sind optionale Preisaktualisierungen aus den dynamischen Daten
+    desselben Betreibers; sie haben Vorrang vor den statischen Preisen.
+    """
     publications = list(iter_publications(document))
     rate_index = {
         item["idG"]: item
@@ -521,6 +624,8 @@ def parse_document(document: Any, source: str) -> list[tuple[dict, set[str]]]:
         for item in _iter_dicts(publication)
         if "ratePolicy" in item and isinstance(item.get("idG"), str)
     }
+    if updates:
+        _apply_rate_updates(rate_index, updates)
     stations: list[tuple[dict, set[str]]] = []
     for publication in publications:
         for table in _as_list(publication.get("energyInfrastructureTable")):
@@ -531,7 +636,7 @@ def parse_document(document: Any, source: str) -> list[tuple[dict, set[str]]]:
                     continue
                 for station in _as_list(site.get("energyInfrastructureStation")):
                     if isinstance(station, dict):
-                        parsed = _station(station, site, source, rate_index)
+                        parsed = _station(station, site, source, rate_index, updates)
                         if parsed:
                             stations.append(parsed)
     return stations
@@ -623,4 +728,31 @@ def diagnose(document: Any) -> dict[str, Any]:
         "rate_sample": _compact(rate_sample) if rate_sample is not None else None,
         "point_sample": _compact(energy_sample) if energy_sample is not None else None,
         "site_sample": _compact(site_sample) if site_sample is not None else None,
+    }
+
+
+def diagnose_status(document: Any, updates: RateUpdates, rate_ids: set[str]) -> dict[str, Any]:
+    """Kennzahlen zu einer dynamischen Publikation."""
+    points = sum(1 for item in _iter_dicts(document) if "aegiElectricChargingPointStatus" in item)
+    sample = None
+    for item in _iter_dicts(document):
+        if "energyRateUpdate" in item:
+            sample = item
+            break
+    refs = {e["ref"] for entries in updates.by_point.values() for e in entries if e["ref"]}
+    return {
+        "point_status": points,
+        "points_with_price": len(updates.by_point),
+        "rate_refs": len(refs),
+        "rate_refs_known": len(refs & rate_ids),
+        "status_sample": _compact(sample) if sample is not None else None,
+    }
+
+
+def rate_ids(document: Any) -> set[str]:
+    """Alle Tarif-IDs einer statischen Publikation."""
+    return {
+        item["idG"]
+        for item in _iter_dicts(document)
+        if "ratePolicy" in item and isinstance(item.get("idG"), str)
     }

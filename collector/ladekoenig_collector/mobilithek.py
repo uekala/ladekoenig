@@ -86,6 +86,7 @@ def fetch_subscription(
     context: ssl.SSLContext,
     cache_dir: Path,
     base_url: str = BASE_URL,
+    max_rounds: int = MAX_ROUNDS,
 ) -> FetchResult:
     """Holt den neuesten Stand eines Abos; nutzt den Cache, wenn nichts Neues kommt."""
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -101,7 +102,7 @@ def fetch_subscription(
     url = f"{base_url}?subscriptionID={subscription_id}"
     latest: bytes | None = None
     last_modified = cached_lm
-    for _ in range(MAX_ROUNDS):
+    for _ in range(max_rounds):
         status, body, lm = _request(url, context, last_modified)
         if status in (204, 304) or not body:
             break

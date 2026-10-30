@@ -1,14 +1,14 @@
 {
-  "_hinweis": "Reihenfolge = Vorrang bei Dubletten (eigene Betreiber-Angebote vor Sammelangeboten). Lizenz bitte am Angebot in der Mobilithek prüfen; nur offene Lizenzen werden verarbeitet. Die Abo-IDs stehen NICHT hier, sondern im Secret MOBILITHEK_SUBSCRIPTIONS.",
+  "_hinweis": "Reihenfolge = Vorrang bei Dubletten (eigene Betreiber-Angebote vor Sammelangeboten). Lizenz bitte am Angebot in der Mobilithek prüfen; nur offene Lizenzen werden verarbeitet. Abo-IDs (subscription) können hier oder im Secret MOBILITHEK_SUBSCRIPTIONS stehen; das Secret hat Vorrang (Schlüssel <key> für statisch, <key>_dyn für dynamisch). Ohne Zertifikat der Organisation sind sie wertlos.",
   "sources": [
     {"key": "tesla", "name": "Tesla Supercharger", "attribution": "Tesla Germany GmbH", "license": "CC0-1.0", "offer": "953828817873125376"},
     {"key": "enbw", "name": "EnBW mobility+", "attribution": "EnBW mobility+ AG & Co. KG", "license": "CC-BY-4.0", "offer": "907574882292453376"},
-    {"key": "vw_group_charging", "name": "Volkswagen Group Charging (Elli)", "attribution": "Volkswagen Group Charging GmbH", "license": "CC0-1.0", "offer": "983008874583728128"},
+    {"key": "vw_group_charging", "name": "Volkswagen Group Charging (Elli)", "attribution": "Volkswagen Group Charging GmbH", "license": "CC0-1.0", "offer": "983008874583728128", "dynamic": {"offer": "983006934617260032"}},
     {"key": "ewe", "name": "EWE Go", "attribution": "EWE", "license": "CC0-1.0", "offer": "1024264572575293440"},
     {"key": "pump", "name": "PUMP", "attribution": "800 Volt Technologies GmbH", "license": "CC0-1.0", "offer": "969322788846231552"},
     {"key": "lichtblick", "name": "LichtBlick eMobility", "attribution": "LichtBlick eMobility GmbH", "license": "CC0-1.0", "offer": "962721207430316032"},
     {"key": "gp_joule", "name": "GP JOULE Connect", "attribution": "GP JOULE Connect GmbH", "license": "CC0-1.0", "offer": "997111469996658688"},
-    {"key": "qwello", "name": "Qwello", "attribution": "Qwello Deutschland GmbH", "license": "CC0-1.0", "offer": "972963216296222720"},
+    {"key": "qwello", "name": "Qwello", "attribution": "Qwello Deutschland GmbH", "license": "CC0-1.0", "offer": "972963216296222720", "dynamic": {"offer": "972966368902897664", "subscription": "1053013580151934976"}},
     {"key": "smatrics", "name": "SMATRICS", "attribution": "SMATRICS GmbH & Co KG", "license": "CC0-1.0", "offer": "980809280034390016"},
     {"key": "wirelane", "name": "Wirelane", "attribution": "Wirelane GmbH", "license": "CC0-1.0", "offer": "869246425829892096"},
     {"key": "inergia", "name": "INERGIA", "attribution": "INERGIA GmbH", "license": "CC0-1.0", "offer": "1043944773714128896"},

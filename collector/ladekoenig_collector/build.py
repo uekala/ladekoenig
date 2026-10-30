@@ -13,13 +13,23 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .datex import UnsupportedFormatError, diagnose, load_document, parse_document
+from .datex import (
+    RateUpdates,
+    UnsupportedFormatError,
+    diagnose,
+    diagnose_status,
+    load_document,
+    parse_document,
+    parse_status,
+    rate_ids,
+)
 from .mobilithek import FetchError, build_ssl_context, fetch_subscription
 from .operators import build_operator_names, resolve_operator_ids
 
 TILE_DEG = 0.25
 FORMAT_VERSION = 1
 OPEN_LICENSES = {"CC0-1.0", "CC-BY-4.0", "DL-DE-ZERO-2.0", "DL-DE-BY-2.0"}
+DYNAMIC_ROUNDS = 300
 
 _LOGGER = logging.getLogger("ladekoenig")
 
@@ -161,6 +171,42 @@ Angaben ohne Gewähr.</p>
 """
 
 
+def subscription_id(
+    source: dict, subscriptions: dict[str, str], dynamic: bool = False
+) -> str | None:
+    """Abo-ID aus dem Secret (Vorrang) oder aus sources.json.
+
+    Abo-IDs funktionieren nur mit dem Zertifikat der Organisation und dürfen
+    daher öffentlich in sources.json stehen; Forks überschreiben sie per Secret.
+    """
+    key = f"{source['key']}_dyn" if dynamic else source["key"]
+    if subscriptions.get(key):
+        return str(subscriptions[key])
+    holder = source.get("dynamic") if dynamic else source
+    value = holder.get("subscription") if isinstance(holder, dict) else None
+    return str(value) if value else None
+
+
+def _fetch_updates(
+    source: dict,
+    subscriptions: dict[str, str],
+    context: Any,
+    cache: Path,
+    local_inputs: dict[str, str],
+) -> tuple[RateUpdates | None, Any]:
+    """Holt die dynamischen Preise eines Betreibers, falls abonniert."""
+    key = f"{source['key']}_dyn"
+    if key in local_inputs:
+        raw = Path(local_inputs[key]).read_bytes()
+    else:
+        sub = subscription_id(source, subscriptions, dynamic=True)
+        if not sub or context is None:
+            return None, None
+        raw = fetch_subscription(key, sub, context, cache, max_rounds=DYNAMIC_ROUNDS).body
+    document = load_document(raw)
+    return parse_status(document), document
+
+
 def run(args: argparse.Namespace) -> int:
     sources = load_sources(Path(args.sources))
     subscriptions: dict[str, str] = {}
@@ -181,23 +227,37 @@ def run(args: argparse.Namespace) -> int:
         if source.get("license") not in OPEN_LICENSES:
             _LOGGER.warning("%s: Lizenz %s nicht offen, übersprungen", key, source.get("license"))
             continue
+        sub = subscription_id(source, subscriptions)
         try:
             if key in local_inputs:
                 raw = Path(local_inputs[key]).read_bytes()
-            elif key in subscriptions and context is not None:
-                raw = fetch_subscription(
-                    key, str(subscriptions[key]), context, Path(args.cache)
-                ).body
+            elif sub and context is not None:
+                raw = fetch_subscription(key, sub, context, Path(args.cache)).body
             else:
                 continue
             document = load_document(raw)
-            records = parse_document(document, key)
         except (FetchError, UnsupportedFormatError, OSError) as err:
             failures += 1
             diagnostics[key] = {"name": source["name"], "error": str(err)}
             _LOGGER.error("%s: %s", key, err)
             continue
+
+        dynamic: dict[str, Any] | None = None
+        updates: RateUpdates | None = None
+        try:
+            updates, status_doc = _fetch_updates(
+                source, subscriptions, context, Path(args.cache), local_inputs
+            )
+            if updates is not None:
+                dynamic = diagnose_status(status_doc, updates, rate_ids(document))
+        except (FetchError, UnsupportedFormatError, OSError) as err:
+            dynamic = {"error": str(err)}
+            _LOGGER.warning("%s: dynamische Preise nicht verfügbar: %s", key, err)
+
+        records = parse_document(document, key, updates)
         diagnostics[key] = {"name": source["name"], "stations": len(records), **diagnose(document)}
+        if dynamic is not None:
+            diagnostics[key]["dynamic"] = dynamic
         _LOGGER.info("%s: %d Stationen gelesen", key, len(records))
         parsed.append((source, records))
         used_sources.append(source)
