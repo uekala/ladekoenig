@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Versionsnummer prüfen
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          manifest=$(python3 -c "import json; print(json.load(open('custom_components/ladekoenig/manifest.json'))['version'])")
+          if [ "$version" != "$manifest" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME passt nicht zur manifest.json ($manifest)"
+            exit 1
+          fi
+      - name: Release-Notizen aus CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="## $version" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
+          test -s notes.md || echo "Version $version" > notes.md
+      - name: Release erstellen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "Ladekönig ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag

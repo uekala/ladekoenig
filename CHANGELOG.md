@@ -1,0 +1,16 @@
+# Änderungen
+
+## 0.2.0
+
+- **Günstigster Preis in 24 h**: neuer Sensor mit dem niedrigsten Preis der nächsten 24 Stunden im Umkreis, inklusive Zeitfenster (`from`, `until`).
+- **Tageszeitpreise**: Jedes Angebot zeigt, bis wann sein Preis gilt (`until`) und welcher danach kommt (`next_price`).
+- **Suche, die mitfährt**: Der Mittelpunkt kann einem `device_tracker`, einer `person` oder einer `zone` folgen. Fehlende Kacheln werden beim Ortswechsel nachgeladen.
+- **Betreibernamen**: Wo eine Quelle nur die Betreiber-ID meldet (z. B. `DE*EWE`), steht jetzt der Firmenname. Betrifft über 11.000 Stationen.
+- **Dynamische AFIR-Preise**: Der Datensammler liest Preisaktualisierungen aus den dynamischen Angeboten.
+- **Logo** für Home Assistant ab 2026.3.
+- **Datenseite**: zeigt abonnierte Quellen ohne Daten und verlinkt eine Diagnose je Quelle.
+- Die Vorschau auf 24 Stunden läuft außerhalb der Ereignisschleife und wird nur einmal pro Viertelstunde neu berechnet.
+
+## 0.1.0
+
+- Erste Version: günstigster Ad-hoc-Preis im Umkreis, Filter, mehrere Suchgebiete, Datensammler mit GitHub Pages.
