@@ -527,15 +527,81 @@ def parse_document(document: Any, source: str) -> list[tuple[dict, set[str]]]:
     return stations
 
 
-def parse_bytes(raw: bytes, source: str) -> list[tuple[dict, set[str]]]:
-    """Parst rohe Nutzdaten. Unterstützt derzeit DATEX II v3 als JSON."""
+def load_document(raw: bytes) -> Any:
+    """Liest rohe Nutzdaten als JSON. Unterstützt derzeit DATEX II v3 als JSON."""
     text = raw.decode("utf-8-sig", errors="replace").lstrip()
     if text.startswith("<"):
         raise UnsupportedFormatError(
             "XML-Nutzdaten werden noch nicht unterstützt (nur DATEX II v3 JSON)"
         )
     try:
-        document = json.loads(text)
+        return json.loads(text)
     except json.JSONDecodeError as err:
         raise UnsupportedFormatError(f"Kein gültiges JSON: {err}") from err
-    return parse_document(document, source)
+
+
+def parse_bytes(raw: bytes, source: str) -> list[tuple[dict, set[str]]]:
+    """Parst rohe Nutzdaten. Unterstützt derzeit DATEX II v3 als JSON."""
+    return parse_document(load_document(raw), source)
+
+
+# --------------------------------------------------------------------------
+# Diagnose: wie legt eine Quelle ihre Tarife ab?
+# --------------------------------------------------------------------------
+
+SAMPLE_LIMIT = 4000
+
+
+def _sample(value: Any) -> Any:
+    """Kürzt ein Beispielobjekt auf eine lesbare Größe (Listen auf zwei Einträge)."""
+    if isinstance(value, dict):
+        return {k: _sample(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_sample(v) for v in value[:2]] + (["…"] if len(value) > 2 else [])
+    return value
+
+
+def _compact(value: Any) -> Any:
+    text = json.dumps(_sample(value), ensure_ascii=False)
+    if len(text) <= SAMPLE_LIMIT:
+        return json.loads(text)
+    return text[:SAMPLE_LIMIT] + "…"
+
+
+def diagnose(document: Any) -> dict[str, Any]:
+    """Zählt Tarifarten und Preistypen und liefert je ein gekürztes Beispiel.
+
+    Dient dazu, Quellen zu verstehen, bei denen keine Ad-hoc-Preise erkannt
+    werden. Enthält nur Strukturangaben und offen lizenzierte Beispieldaten.
+    """
+    policies: dict[str, int] = {}
+    price_types: dict[str, int] = {}
+    rate_sample: dict | None = None
+    energy_sample: Any = None
+    rates = points = 0
+    for item in _iter_dicts(document):
+        if "ratePolicy" in item or "energyPrice" in item:
+            rates += 1
+            policy = _enum(item.get("ratePolicy")) or "–"
+            policies[policy] = policies.get(policy, 0) + 1
+            for price in _as_list(item.get("energyPrice")):
+                if isinstance(price, dict):
+                    kind = _enum(price.get("priceType")) or "–"
+                    price_types[kind] = price_types.get(kind, 0) + 1
+            if rate_sample is None:
+                rate_sample = item
+        if "aegiElectricChargingPoint" in item:
+            points += 1
+            if energy_sample is None:
+                point = item["aegiElectricChargingPoint"]
+                if isinstance(point, dict):
+                    skip = ("connector", "externalIdentifier")
+                    energy_sample = {k: v for k, v in point.items() if k not in skip}
+    return {
+        "rates": rates,
+        "points": points,
+        "rate_policies": policies,
+        "price_types": price_types,
+        "rate_sample": _compact(rate_sample) if rate_sample is not None else None,
+        "point_sample": _compact(energy_sample) if energy_sample is not None else None,
+    }

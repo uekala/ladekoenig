@@ -104,3 +104,14 @@ def test_build_writes_tiles_and_meta(tmp_path: Path) -> None:
 
 def test_build_fails_without_any_source(tmp_path: Path) -> None:
     assert main(["--sources", str(SOURCES), "--out", str(tmp_path)]) == 1
+
+
+def test_diagnose_counts_rate_policies() -> None:
+    from ladekoenig_collector.datex import diagnose, load_document
+
+    result = diagnose(load_document(FIXTURE.read_bytes()))
+    assert result["rates"] > 0
+    assert result["rate_policies"].get("adHoc", 0) > 0
+    assert result["price_types"]
+    assert isinstance(result["rate_sample"], dict)
+    assert result["points"] > 0

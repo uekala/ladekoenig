@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import logging
 import math
@@ -12,7 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .datex import UnsupportedFormatError, parse_bytes
+from .datex import UnsupportedFormatError, diagnose, load_document, parse_document
 from .mobilithek import FetchError, build_ssl_context, fetch_subscription
 
 TILE_DEG = 0.25
@@ -63,6 +64,7 @@ def write_output(
     sources: list[dict],
     stats: dict[str, dict[str, Any]],
     generated: str,
+    diagnostics: dict[str, dict[str, Any]] | None = None,
 ) -> dict:
     tiles: dict[str, list[dict]] = {}
     for record in stations:
@@ -100,12 +102,25 @@ def write_output(
     (base / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8"
     )
+    diagnostics = diagnostics or {}
+    (base / "diag.json").write_text(
+        json.dumps({"generated": generated, "sources": diagnostics}, ensure_ascii=False, indent=1),
+        encoding="utf-8",
+    )
     (out_dir / ".nojekyll").write_text("")
-    (out_dir / "index.html").write_text(_index_html(meta), encoding="utf-8")
+    (out_dir / "index.html").write_text(_index_html(meta, diagnostics), encoding="utf-8")
     return meta
 
 
-def _index_html(meta: dict) -> str:
+def _index_html(meta: dict, diagnostics: dict[str, dict[str, Any]] | None = None) -> str:
+    missing = [
+        f"<li>{html.escape(d.get('name', key))}: {html.escape(d['error'])}</li>"
+        for key, d in (diagnostics or {}).items()
+        if d.get("error")
+    ]
+    missing_html = (
+        "<h2>Abonniert, aber ohne Daten</h2><ul>" + "".join(missing) + "</ul>" if missing else ""
+    )
     rows = "\n".join(
         f"<tr><td>{s['attribution']}</td><td>{s['license']}</td>"
         f"<td>{s.get('stations', 0)}</td><td>{s.get('with_price', 0)}</td></tr>"
@@ -134,6 +149,8 @@ Angaben ohne Gewähr.</p>
 <tbody>
 {rows}
 </tbody></table>
+{missing_html}
+<p><a href="v1/diag.json">Diagnose je Quelle</a> (Tarifarten, Preistypen, Beispieldaten)</p>
 </body></html>
 """
 
@@ -151,6 +168,7 @@ def run(args: argparse.Namespace) -> int:
 
     parsed: list[tuple[dict, list[tuple[dict, set[str]]]]] = []
     used_sources: list[dict] = []
+    diagnostics: dict[str, dict[str, Any]] = {}
     failures = 0
     for source in sources:
         key = source["key"]
@@ -166,11 +184,14 @@ def run(args: argparse.Namespace) -> int:
                 ).body
             else:
                 continue
-            records = parse_bytes(raw, key)
+            document = load_document(raw)
+            records = parse_document(document, key)
         except (FetchError, UnsupportedFormatError, OSError) as err:
             failures += 1
+            diagnostics[key] = {"name": source["name"], "error": str(err)}
             _LOGGER.error("%s: %s", key, err)
             continue
+        diagnostics[key] = {"name": source["name"], "stations": len(records), **diagnose(document)}
         _LOGGER.info("%s: %d Stationen gelesen", key, len(records))
         parsed.append((source, records))
         used_sources.append(source)
@@ -181,7 +202,7 @@ def run(args: argparse.Namespace) -> int:
 
     stations, stats = merge_sources(parsed)
     generated = args.generated or datetime.now(UTC).replace(microsecond=0).isoformat()
-    meta = write_output(Path(args.out), stations, used_sources, stats, generated)
+    meta = write_output(Path(args.out), stations, used_sources, stats, generated, diagnostics)
     _LOGGER.info(
         "Fertig: %d Stationen, %d Ladepunkte, %d Kacheln, %d Quellen mit Fehler",
         meta["stations"],
