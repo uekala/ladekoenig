@@ -8,7 +8,8 @@
 - **Betreibernamen**: Wo eine Quelle nur die Betreiber-ID meldet (z. B. `DE*EWE`), steht jetzt der Firmenname. Betrifft über 11.000 Stationen.
 - **Dynamische AFIR-Preise**: Der Datensammler liest Preisaktualisierungen aus den dynamischen Angeboten.
 - **Logo** für Home Assistant ab 2026.3.
-- **Datenseite**: zeigt abonnierte Quellen ohne Daten und verlinkt eine Diagnose je Quelle.
+- **Neue Datenseite**: freundlich gestaltet, mit einer Punktkarte Deutschlands aus den echten Daten, hellem und dunklem Modus und gut lesbarer Schrift (Atkinson Hyperlegible). Sie zeigt auch abonnierte Quellen ohne Preise und verlinkt eine Diagnose je Quelle.
+- **Sprache**: „Ladenetze“ statt „Betreiber“ in Einrichtung, README und Datenseite.
 - Die Vorschau auf 24 Stunden läuft außerhalb der Ereignisschleife und wird nur einmal pro Viertelstunde neu berechnet.
 
 ## 0.1.0
