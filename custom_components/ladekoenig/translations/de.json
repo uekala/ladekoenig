@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Ladekönig einrichten",
-        "description": "Findet den günstigsten Ad-hoc-Ladepreis im gewählten Umkreis. Datenquelle: AFIR-Meldungen der Betreiber über die Mobilithek.",
+        "description": "Findet den günstigsten Ad-hoc-Ladepreis im gewählten Umkreis. Datenquelle: AFIR-Meldungen der Ladenetze über die Mobilithek.",
         "data": {
           "name": "Name",
           "location": "Suchgebiet",
           "min_power": "Mindestleistung",
           "current_type": "Stromart",
           "connector": "Stecker",
-          "operators": "Nur diese Betreiber",
+          "operators": "Nur diese Ladenetze",
           "location_entity": "Mittelpunkt folgt"
         },
         "data_description": {
@@ -34,7 +34,7 @@
           "min_power": "Mindestleistung",
           "current_type": "Stromart",
           "connector": "Stecker",
-          "operators": "Nur diese Betreiber",
+          "operators": "Nur diese Ladenetze",
           "data_url": "Datenquelle (URL)",
           "location_entity": "Mittelpunkt folgt"
         },

@@ -4,23 +4,23 @@
 
 Günstigste **Ad-hoc-Ladepreise** in deiner Umgebung, direkt in Home Assistant – so wie Tankerkönig für Sprit, nur für Ladesäulen.
 
-Seit der EU-Verordnung AFIR müssen Ladesäulenbetreiber Standorte, Leistung und Ad-hoc-Preise maschinenlesbar über den nationalen Zugangspunkt [Mobilithek](https://mobilithek.info/) bereitstellen. Ladekönig macht diese Daten in Home Assistant nutzbar – ohne dass du selbst einen Mobilithek-Zugang brauchst.
+Seit der EU-Verordnung AFIR müssen alle Ladenetze Standorte, Leistung und Ad-hoc-Preise maschinenlesbar über den nationalen Zugangspunkt [Mobilithek](https://mobilithek.info/) bereitstellen. Ladekönig macht diese Daten in Home Assistant nutzbar – ohne dass du selbst einen Mobilithek-Zugang brauchst.
 
 ## Was es kann
 
-- **Günstigster Preis** im Umkreis als Sensor (€/kWh), mit Betreiber, Adresse, Entfernung, Leistung, Blockiergebühr und den fünf günstigsten Alternativen
+- **Günstigster Preis** im Umkreis als Sensor (€/kWh), mit Ladenetz, Adresse, Entfernung, Leistung, Blockiergebühr und den fünf günstigsten Alternativen
 - **Tageszeitpreise** werden berücksichtigt, z. B. der günstigere Nachttarif an Superchargern. Zu jedem Angebot steht, **bis wann** der Preis gilt und was danach kommt
 - **Günstigster Preis in den nächsten 24 Stunden** als eigener Sensor, mit Zeitfenster („ab 23:00 in Moers für 0,39 €“)
 - **Suche, die mitfährt**: Der Mittelpunkt kann einer Entität folgen, z. B. dem Auto oder einer Person
-- **Filter** nach Mindestleistung, AC/DC, Stecker und Betreiber
+- **Filter** nach Mindestleistung, AC/DC, Stecker und Ladenetz
 - **Mehrere Suchgebiete**: zum Beispiel „Zuhause“, „Arbeit“ und „nur Supercharger“
-- **Betreibernamen statt Kürzeln**: Wo ein Betreiber nur seine ID meldet (z. B. `DE*EWE`), steht der Firmenname
+- **Namen statt Kürzeln**: Wo ein Ladenetz nur seine ID meldet (z. B. `DE*EWE`), steht der Firmenname
 - Der Preissensor trägt Koordinaten und erscheint dadurch auf der Karte
 
 ## So funktioniert es
 
 ```
-Mobilithek (AFIR-Angebote der Betreiber)
+Mobilithek (AFIR-Angebote der Ladenetze)
    │  täglich, GitHub Action mit Client-Zertifikat
    ▼
 GitHub Pages: kompakte JSON-Kacheln (0,25° × 0,25°)
@@ -47,7 +47,7 @@ Deine Position verlässt Home Assistant nicht – abgerufen werden nur ganze Kac
 | Mindestleistung | Alle, ab 22 kW, ab 50 kW oder ab 150 kW |
 | Stromart | Alle, AC oder DC |
 | Stecker | Alle, CCS, Typ 2 oder CHAdeMO |
-| Nur diese Betreiber | Optional, kommagetrennt, z. B. `Tesla` oder `EnBW, Ionity` |
+| Nur diese Ladenetze | Optional, kommagetrennt, z. B. `Tesla` oder `EnBW, Ionity` |
 | Mittelpunkt folgt | Optional: `device_tracker`, `person` oder `zone`. Die Suche wandert mit; ohne aktuelle Position gilt das Suchgebiet oben |
 
 Alles lässt sich später über **Konfigurieren** ändern.
@@ -63,7 +63,7 @@ Alles lässt sich später über **Konfigurieren** ändern.
 
 ## Beispiele
 
-**Benachrichtigung, wenn der Supercharger in der Nähe günstig wird** (Eintrag mit Betreiberfilter `Tesla`):
+**Benachrichtigung, wenn der Supercharger in der Nähe günstig wird** (Eintrag nur für das Ladenetz `Tesla`):
 
 ```yaml
 alias: Supercharger günstig
@@ -81,7 +81,7 @@ actions:
 mode: single
 ```
 
-**Hinweis vor dem Nachttarif** (Eintrag mit Betreiberfilter `Tesla`):
+**Hinweis vor dem Nachttarif** (Eintrag nur für das Ladenetz `Tesla`):
 
 ```yaml
 alias: Supercharger-Nachttarif
@@ -115,7 +115,7 @@ Die Entitäts-IDs hängen vom gewählten Namen ab.
 
 ## Datenquelle und Lizenzen
 
-- Grundlage sind die AFIR-Datenangebote der Betreiber in der Mobilithek (DATEX II v3): statische Angebote und, wo abonniert, die dynamischen Preisaktualisierungen.
+- Grundlage sind die AFIR-Datenangebote der Ladenetze in der Mobilithek (DATEX II v3): statische Angebote und, wo abonniert, die dynamischen Preisaktualisierungen.
 - Verarbeitet werden nur Angebote mit offener Lizenz (CC0, CC BY 4.0, DL-DE). Die genutzten Quellen und Namensnennungen stehen auf der [Datenseite](https://uekala.github.io/ladekoenig/) und im Attribut `attribution` des Preissensors.
 - Die Daten werden aufbereitet: Nettopreise in Bruttopreise umgerechnet, Ladepunkte gruppiert, nach Kacheln aufgeteilt.
 - **Ad-hoc-Preise** sind die Preise ohne Vertrag. Mit Ladekarte oder App kann es günstiger oder teurer sein.
@@ -126,7 +126,7 @@ Die Entitäts-IDs hängen vom gewählten Namen ab.
 ## Grenzen (Version 0.2)
 
 - Die Daten werden einmal täglich aufbereitet. Dynamische Preise kommen deshalb mit bis zu einem Tag Verzug an.
-- Nicht alle Betreiber melden schon an die Mobilithek, und nicht jede gemeldete Säule hat einen Preis. Qwello meldet derzeit weder statisch noch dynamisch Preise.
+- Nicht alle Ladenetze melden schon an die Mobilithek, und nicht jede gemeldete Säule hat einen Preis. Qwello meldet derzeit weder statisch noch dynamisch Preise.
 - Nur Deutschland.
 - Angebote im XML-Format werden noch nicht gelesen, nur DATEX II v3 als JSON.
 - Feiertagsregeln in Tarifen werden nicht ausgewertet.

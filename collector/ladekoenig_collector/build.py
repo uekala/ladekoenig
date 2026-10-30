@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import logging
 import math
@@ -25,6 +24,7 @@ from .datex import (
 )
 from .mobilithek import FetchError, build_ssl_context, fetch_subscription
 from .operators import build_operator_names, resolve_operator_ids
+from .site import copy_assets, render_index
 
 TILE_DEG = 0.25
 FORMAT_VERSION = 1
@@ -124,51 +124,15 @@ def write_output(
         encoding="utf-8",
     )
     (out_dir / ".nojekyll").write_text("")
-    (out_dir / "index.html").write_text(_index_html(meta, diagnostics), encoding="utf-8")
+    tile_counts = {
+        key: (len(records), sum(1 for record in records if record.get("r")))
+        for key, records in tiles.items()
+    }
+    copy_assets(out_dir)
+    (out_dir / "index.html").write_text(
+        render_index(meta, diagnostics, tile_counts), encoding="utf-8"
+    )
     return meta
-
-
-def _index_html(meta: dict, diagnostics: dict[str, dict[str, Any]] | None = None) -> str:
-    missing = [
-        f"<li>{html.escape(d.get('name', key))}: {html.escape(d['error'])}</li>"
-        for key, d in (diagnostics or {}).items()
-        if d.get("error")
-    ]
-    missing_html = (
-        "<h2>Abonniert, aber ohne Daten</h2><ul>" + "".join(missing) + "</ul>" if missing else ""
-    )
-    rows = "\n".join(
-        f"<tr><td>{s['attribution']}</td><td>{s['license']}</td>"
-        f"<td>{s.get('stations', 0)}</td><td>{s.get('with_price', 0)}</td></tr>"
-        for s in meta["sources"]
-    )
-    return f"""<!doctype html>
-<html lang="de"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ladekönig – Daten</title>
-<style>
-body{{font-family:system-ui,sans-serif;max-width:52rem;margin:2rem auto;
-padding:0 1rem;line-height:1.5}}
-table{{border-collapse:collapse;width:100%}}
-td,th{{border-bottom:1px solid #ccc;padding:.3rem;text-align:left}}
-</style>
-</head><body>
-<h1>Ladekönig – Ad-hoc-Ladepreise</h1>
-<p>Datenbasis für die Home-Assistant-Integration
-<a href="https://github.com/uekala/ladekoenig">Ladekönig</a>.
-Quelle sind die AFIR-Datenangebote der Betreiber im nationalen Zugangspunkt
-<a href="https://mobilithek.info/">Mobilithek</a>. Die Daten wurden normalisiert
-(Nettopreise in Bruttopreise umgerechnet, Ladepunkte gruppiert, nach Kacheln aufgeteilt).
-Angaben ohne Gewähr.</p>
-<p>Stand: {meta["generated"]} · {meta["stations"]} Stationen · {meta["points"]} Ladepunkte</p>
-<table><thead><tr><th>Quelle</th><th>Lizenz</th><th>Stationen</th><th>mit Preis</th></tr></thead>
-<tbody>
-{rows}
-</tbody></table>
-{missing_html}
-<p><a href="v1/diag.json">Diagnose je Quelle</a> (Tarifarten, Preistypen, Beispieldaten)</p>
-</body></html>
-"""
 
 
 def subscription_id(

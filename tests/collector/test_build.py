@@ -46,5 +46,8 @@ def test_run_writes_diagnostics(tmp_path: Path) -> None:
     assert diag["sources"]["tesla"]["stations"] > 0
     assert "XML" in diag["sources"]["broken"]["error"]
     page = (out / "index.html").read_text(encoding="utf-8")
-    assert "Abonniert, aber ohne Daten" in page
+    assert "Noch ohne Preise" in page
     assert "Kaputt" in page
+    assert '<svg class="map"' in page
+    assert (out / "assets" / "fonts" / "atkinson-400.woff2").exists()
+    assert (out / "assets" / "icon.svg").exists()
