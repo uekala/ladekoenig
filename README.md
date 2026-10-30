@@ -4,6 +4,8 @@
 
 Günstigste **Ad-hoc-Ladepreise** in deiner Umgebung, direkt in Home Assistant – so wie Tankerkönig für Sprit, nur für Ladesäulen.
 
+Ohne Home Assistant: Die **[Web-App](https://uekala.github.io/ladekrone/app/)** zeigt dieselben Preise auf dem Handy, auch für später am Tag. Sie lässt sich auf den Startbildschirm legen und funktioniert offline mit den zuletzt geladenen Preisen.
+
 Seit der EU-Verordnung AFIR müssen alle Ladenetze Standorte, Leistung und Ad-hoc-Preise maschinenlesbar über den nationalen Zugangspunkt [Mobilithek](https://mobilithek.info/) bereitstellen. Ladekrone macht diese Daten in Home Assistant nutzbar – ohne dass du selbst einen Mobilithek-Zugang brauchst.
 
 ## Was es kann
@@ -16,6 +18,19 @@ Seit der EU-Verordnung AFIR müssen alle Ladenetze Standorte, Leistung und Ad-ho
 - **Mehrere Suchgebiete**: zum Beispiel „Zuhause“, „Arbeit“ und „nur Supercharger“
 - **Namen statt Kürzeln**: Wo ein Ladenetz nur seine ID meldet (z. B. `DE*EWE`), steht der Firmenname
 - Der Preissensor trägt Koordinaten und erscheint dadurch auf der Karte
+
+## Web-App
+
+[uekala.github.io/ladekrone/app](https://uekala.github.io/ladekrone/app/)
+
+- Standort verwenden oder Ort bzw. PLZ suchen. Die Suche läuft auf dem Gerät, ohne fremden Suchdienst
+- Günstigster Preis im Umkreis, darunter alle weiteren Stationen mit Preis
+- **Später günstiger**: der günstigste Preis der nächsten 24 Stunden mit Zeitfenster
+- Filter nach Leistung, Umkreis, Ladenetz und Stecker
+- Route mit einem Tipp in Apple Karten oder Google Maps
+- Keine Konten, keine Cookies, kein Tracking; der Standort bleibt auf dem Gerät
+
+Die Preislogik ist dieselbe wie in der Integration; ein Test vergleicht beide.
 
 ## So funktioniert es
 

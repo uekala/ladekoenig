@@ -24,7 +24,8 @@ from .datex import (
 )
 from .mobilithek import FetchError, build_ssl_context, fetch_subscription
 from .operators import build_operator_names, resolve_operator_ids
-from .site import copy_assets, render_index
+from .places import build_places
+from .site import copy_assets, copy_webapp, render_index
 
 TILE_DEG = 0.25
 FORMAT_VERSION = 1
@@ -123,12 +124,21 @@ def write_output(
         ),
         encoding="utf-8",
     )
+    (base / "places.json").write_text(
+        json.dumps(
+            {"v": FORMAT_VERSION, "generated": generated, "places": build_places(stations)},
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
     (out_dir / ".nojekyll").write_text("")
     tile_counts = {
         key: (len(records), sum(1 for record in records if record.get("r")))
         for key, records in tiles.items()
     }
     copy_assets(out_dir)
+    copy_webapp(out_dir)
     (out_dir / "index.html").write_text(
         render_index(meta, diagnostics, tile_counts), encoding="utf-8"
     )

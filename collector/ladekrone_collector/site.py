@@ -8,6 +8,7 @@ mit gemeldetem Preis.
 
 from __future__ import annotations
 
+import hashlib
 import html
 import math
 import shutil
@@ -17,6 +18,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 ASSETS = Path(__file__).parent / "site"
+WEBAPP = Path(__file__).parent / "webapp"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 REPO_URL = "https://github.com/uekala/ladekrone"
 GERMANY = (47.2, 55.1, 5.8, 15.1)  # Breite min/max, Länge min/max
@@ -282,12 +284,12 @@ aufbereitet für Home Assistant.">
 <section class="hero" aria-labelledby="title">
 <div>
 <h1 id="title">Laden zum besten Preis, ganz in deiner Nähe.</h1>
-<p class="lead">Ladekrone zeigt dir in Home Assistant, wo du gerade am günstigsten
-ohne Vertrag laden kannst, und wann es später noch günstiger wird. Die Preise melden
-die Ladenetze selbst, so wie es die EU-Verordnung AFIR verlangt.</p>
+<p class="lead">Ladekrone zeigt dir, wo du gerade am günstigsten ohne Vertrag laden
+kannst, und wann es später noch günstiger wird: als Web-App auf dem Handy oder in Home
+Assistant. Die Preise melden die Ladenetze selbst, so wie es die EU-Verordnung AFIR verlangt.</p>
 <div class="actions">
-<a class="btn primary" href="#loslegen">Ladekrone einrichten</a>
-<a class="btn" href="#quellen">Woher die Preise kommen</a>
+<a class="btn primary" href="app/">Web-App öffnen</a>
+<a class="btn" href="#loslegen">In Home Assistant nutzen</a>
 </div>
 <p class="fresh">Stand: <strong>{stand}</strong>.
 {_num(meta.get("stations", 0))} Ladestationen mit {_num(meta.get("points", 0))} Ladepunkten
@@ -323,9 +325,9 @@ Stationen zusammen. Der Balken zeigt, welcher Anteil der Stationen einen Preis m
 {_waiting(sources, diagnostics)}
 
 <section id="loslegen" aria-labelledby="loslegen-title">
-<h2 id="loslegen-title">So legst du los</h2>
+<h2 id="loslegen-title">In Home Assistant nutzen</h2>
 <p class="intro">Du brauchst Home Assistant mit HACS. Einen eigenen Zugang zur Mobilithek
-brauchst du nicht.</p>
+brauchst du nicht. Ohne Home Assistant nimmst du einfach die <a href="app/">Web-App</a>.</p>
 <ol class="steps">
 <li>In HACS unter <em>Benutzerdefinierte Repositories</em> die Adresse
 <code>github.com/uekala/ladekrone</code> als Integration hinzufügen.</li>
@@ -360,3 +362,22 @@ def copy_assets(out_dir: Path) -> None:
         .replace('class="crown-dark"', 'fill="#2B1B3D"'),
         encoding="utf-8",
     )
+
+
+def copy_webapp(out_dir: Path) -> str:
+    """Web-App nach ``app/`` kopieren; der Service Worker bekommt eine Version aus
+    dem Inhalt, damit Handys eine neue App-Version zuverlässig übernehmen."""
+    target = out_dir / "app"
+    shutil.copytree(WEBAPP, target, dirs_exist_ok=True)
+    digest = hashlib.sha256()
+    for path in sorted(WEBAPP.rglob("*")):
+        if path.is_file():
+            digest.update(path.relative_to(WEBAPP).as_posix().encode())
+            digest.update(path.read_bytes())
+    version = digest.hexdigest()[:12]
+    worker = target / "sw.js"
+    if worker.exists():
+        worker.write_text(
+            worker.read_text(encoding="utf-8").replace("__VERSION__", version), encoding="utf-8"
+        )
+    return version

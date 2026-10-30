@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ladekrone – günstig laden in deiner Nähe</title>
+<meta name="description" content="Zeigt dir, wo du gerade am günstigsten ohne Vertrag laden kannst. Die Preise melden die Ladenetze selbst (AFIR).">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1F1630" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Ladekrone">
+<link rel="preload" href="../assets/fonts/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="app.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<div class="app">
+<header class="bar">
+  <a class="brand" href="./" aria-label="Ladekrone, Startseite">
+    <img src="icons/icon-192.png" alt="" width="36" height="36">Ladekrone
+  </a>
+  <a class="about" href="../">Über die Daten</a>
+</header>
+
+<main id="main">
+  <section class="start" id="start" aria-labelledby="start-title">
+    <h1 id="start-title">Wo lädst du gerade am günstigsten?</h1>
+    <p class="lead">Ladekrone vergleicht die Preise ohne Vertrag an den Ladesäulen in deiner Nähe,
+    auch für später am Tag. Die Preise melden die Ladenetze selbst.</p>
+  </section>
+
+  <div class="where">
+    <button class="btn locate" id="locate" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a.9.9 0 0 1 .9.9v1.66a7 7 0 0 1 6.04 6.04h1.66a.9.9 0 1 1 0 1.8h-1.66a7 7 0 0 1-6.04 6.04v1.66a.9.9 0 1 1-1.8 0v-1.66a7 7 0 0 1-6.04-6.04H3.4a.9.9 0 1 1 0-1.8h1.66a7 7 0 0 1 6.04-6.04V3.4a.9.9 0 0 1 .9-.9Zm0 4.3a5.2 5.2 0 1 0 0 10.4 5.2 5.2 0 0 0 0-10.4Zm0 2.7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z"/></svg>
+      <span>Meinen Standort verwenden</span>
+    </button>
+    <div class="search" role="search">
+      <label for="q" class="visually-hidden">Ort oder Postleitzahl</label>
+      <input id="q" type="search" placeholder="Ort oder PLZ" autocomplete="off" spellcheck="false"
+        role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions">
+      <ul id="suggestions" role="listbox" aria-label="Vorschläge" hidden></ul>
+    </div>
+  </div>
+
+  <p class="note" id="note" role="status" hidden></p>
+
+  <section class="results" id="results" aria-labelledby="place-title" hidden>
+    <h2 class="place" id="place-title"></h2>
+    <div class="filters" aria-label="Filter">
+      <select id="f-power" aria-label="Mindestleistung">
+        <option value="0">Alle Leistungen</option>
+        <option value="22">ab 22 kW</option>
+        <option value="50">ab 50 kW</option>
+        <option value="150">ab 150 kW</option>
+      </select>
+      <select id="f-radius" aria-label="Umkreis">
+        <option value="5">Umkreis 5 km</option>
+        <option value="10">Umkreis 10 km</option>
+        <option value="25">Umkreis 25 km</option>
+        <option value="50">Umkreis 50 km</option>
+      </select>
+      <select id="f-operator" aria-label="Ladenetz">
+        <option value="">Alle Ladenetze</option>
+      </select>
+      <select id="f-connector" aria-label="Stecker">
+        <option value="any">Alle Stecker</option>
+        <option value="ccs">CCS</option>
+        <option value="type2">Typ 2</option>
+        <option value="chademo">CHAdeMO</option>
+      </select>
+    </div>
+    <div id="winner"></div>
+    <div id="later"></div>
+    <div id="more"></div>
+    <p class="summary" id="summary" aria-live="polite"></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p id="install-hint" hidden></p>
+  <button class="btn ghost" id="install" type="button" hidden>Als App installieren</button>
+  <p>Ad-hoc-Preise gelten ohne Vertrag. Mit Ladekarte oder Abo kann es günstiger oder teurer sein.
+  Alle Angaben ohne Gewähr.</p>
+  <p id="stand"></p>
+  <p>Daten: AFIR-Meldungen der Ladenetze über die <a href="https://mobilithek.info/">Mobilithek</a>,
+  <a href="../#quellen">Quellen und Lizenzen</a>.
+  <a href="datenschutz.html">Datenschutz</a>.
+  <a href="https://github.com/uekala/ladekrone">Quellcode</a>.</p>
+</footer>
+</div>
+</body>
+</html>

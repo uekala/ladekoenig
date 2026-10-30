@@ -3,6 +3,8 @@
 ## 0.3.0
 
 - **Neuer Name: Ladekrone.** Ladekönig heißt jetzt Ladekrone, die Krone bleibt. Repository, Integration (`ladekrone`) und Datenseite sind umbenannt.
+- **Web-App** unter uekala.github.io/ladekrone/app: günstigster Preis in der Nähe per Standort oder Ortssuche, „Später günstiger“ für die nächsten 24 Stunden, Filter, Route, offline nutzbar und installierbar. Rechnet mit derselben Logik wie die Integration.
+- **Ortsverzeichnis** (`v1/places.json`): Postleitzahlen und Orte aus den Adressen der Stationen, für die Suche ohne fremden Dienst.
 - **Umstieg:** In HACS das Repository `uekala/ladekrone` hinzufügen und Ladekrone installieren, die alte Integration Ladekönig entfernen und die Suchgebiete neu anlegen. Entitäts-IDs richten sich wie bisher nach dem Namen des Suchgebiets.
 
 ## 0.2.0
