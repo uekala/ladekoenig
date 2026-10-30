@@ -328,6 +328,9 @@ async function render() {
   $("place-title").textContent = place.label;
   syncFilterControls();
   const f = state.filters;
+  if (!$("winner").innerHTML) {
+    $("winner").innerHTML = '<p class="loading">Preise werden geladen …</p>';
+  }
   let loaded;
   try {
     loaded = await loadTiles(place.lat, place.lon, f.radius);

@@ -108,6 +108,7 @@ h1{font:750 clamp(2rem,8.5vw,2.9rem)/1.05 "Bricolage",sans-serif;letter-spacing:
 .detail p{margin:.2rem 0}
 .detail .btn{margin-top:.6rem;min-height:2.6rem;padding:.45rem 1rem;font-size:.95rem}
 
+.loading{margin:1rem 0;color:var(--muted)}
 .summary{color:var(--muted);font-size:.95rem;margin:1rem 0 0}
 .empty{margin-top:.6rem;background:var(--wash);border-radius:1.4rem;padding:1.2rem}
 .empty p{margin:0 0 .8rem}
