@@ -1,7 +1,13 @@
 {
   "domain": "ladekoenig",
   "name": "Ladekönig",
-  "codeowners": ["@uekala"],
+  "categories": [
+    "energy.ev_charging",
+    "energy.energy_prices"
+  ],
+  "codeowners": [
+    "@uekala"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/uekala/ladekoenig",
