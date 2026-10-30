@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 ASSETS = Path(__file__).parent / "site"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 REPO_URL = "https://github.com/uekala/ladekoenig"
+GERMANY = (47.2, 55.1, 5.8, 15.1)  # Breite min/max, Länge min/max
 MONTHS = [
     "Januar",
     "Februar",
@@ -77,7 +78,10 @@ def dot_map(tile_counts: dict[str, tuple[int, int]], tile_deg: float) -> str:
             y, x = (int(part) for part in key.split("_"))
         except ValueError:
             continue
-        if stations:
+        lat, lon = (y + 0.5) * tile_deg, (x + 0.5) * tile_deg
+        # Nur Deutschland zeigen; einzelne Stationen mit falschen Koordinaten
+        # würden den Ausschnitt sonst auf ganz Europa aufziehen.
+        if stations and GERMANY[0] <= lat <= GERMANY[1] and GERMANY[2] <= lon <= GERMANY[3]:
             cells.append((y, x, stations, priced))
     if not cells:
         return ""

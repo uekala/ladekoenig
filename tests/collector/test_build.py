@@ -51,3 +51,12 @@ def test_run_writes_diagnostics(tmp_path: Path) -> None:
     assert '<svg class="map"' in page
     assert (out / "assets" / "fonts" / "atkinson-400.woff2").exists()
     assert (out / "assets" / "icon.svg").exists()
+
+
+def test_dot_map_ignores_tiles_outside_germany() -> None:
+    from ladekoenig_collector.site import dot_map
+
+    inside = dot_map({"205_26": (10, 5)}, 0.25)
+    with_outlier = dot_map({"205_26": (10, 5), "0_0": (1, 0)}, 0.25)
+    assert inside == with_outlier
+    assert inside.count("<circle") == 1
